@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 from database import get_db
 
-router = APIRouter(prefix="/database", tags=["Data"])
+router = APIRouter(prefix="/api/database", tags=["Data"])
 
 @router.get("/competitions")
 def get_competitions(db: Session = Depends(get_db)):
