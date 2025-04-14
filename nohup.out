@@ -34325,3 +34325,61 @@ WARNING:  Invalid HTTP request received.
 WARNING:  Invalid HTTP request received.
 INFO:     184.95.51.10:0 - "GET /api/image?img_url=http://169.254.169.254/latest/meta-data/ HTTP/1.0" 404 Not Found
 WARNING:  Invalid HTTP request received.
+<<<<<<< HEAD
+=======
+WARNING:  StatReload detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [454061]
+INFO:     Started server process [457696]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     121.157.205.216:50138 - "GET /docs HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50138 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50139 - "GET /api/v1/main/teamrank HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50139 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     121.157.205.216:50141 - "GET /docs HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50141 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50141 - "GET /database/competitions HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50156 - "GET /database/competitions HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50155 - "GET /database/fixtures HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50158 - "GET /database/grounds HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50159 - "GET /database/players HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50162 - "GET /database/seasons HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50162 - "GET /docs HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50162 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50163 - "GET /database/standings HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50164 - "GET /database/teams HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [457696]
+INFO:     Started server process [457749]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     121.157.205.216:50240 - "GET /docs HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50240 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50239 - "GET /api/v1/main/allgames HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+WARNING:  StatReload detected changes in 'games_api.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [457749]
+INFO:     Started server process [457774]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     121.157.205.216:50287 - "GET /docs/ HTTP/1.1" 307 Temporary Redirect
+INFO:     121.157.205.216:50287 - "GET /docs HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50287 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50288 - "GET /api/v1/games/seasons?competition_id=PULSELIVE_COMPETITION_1 HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50292 - "GET /api/v1/games/seasons?competition_id=PULSELIVE_COMPETITION_2 HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50301 - "GET /docs HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50301 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50302 - "GET /api/v1/main/player_rank HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50343 - "GET /docs HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50343 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     121.157.205.216:50344 - "GET /api/v1/main/player_rank HTTP/1.1" 200 OK
+>>>>>>> 4f3a97ea94f4b7777e7311ffdaa8b4eedf282adb

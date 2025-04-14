@@ -6,7 +6,7 @@ from model import dict_to_camel_case
 
 router = APIRouter(prefix="/api/v1/player", tags=["Players"])
 
-@router.get("/player_rank")
+@router.get("/playerRank")
 def player_rank(db : Session = Depends(get_db)):
     query = text("SELECT * from players")
     result = db.execute(query).fetchall()
