@@ -23,21 +23,65 @@ def overall_teamrank(db : Session = Depends(get_db)):
     result = db.execute(query).fetchall()
     return {"overallGames" : [dict_to_camel_case(row._mapping) for row in result]}
 
-@router.get("/seasons")
-def get_seasons_by_competition(competition_id: str, db: Session = Depends(get_db)):
+@router.get("/upcomingGames")
+def upcomingGames(db: Session = Depends(get_db)):
     query = text("""
-        SELECT 
-            s.id, 
-            s.abbreviation, 
-            s.date_end, 
-            s.date_start, 
-            s.year_end, 
-            s.year_start, 
-            c.name_en AS competition_name_en
-        FROM seasons s
-        JOIN competitions c ON s.competition_id = c.id
-        WHERE s.competition_id = :competition_id
-        ORDER BY date_end DESC
+                    SELECT 
+            f.id AS fixture_id,
+            th.short_name_en AS home_team,
+            ta.short_name_en AS away_team,
+            f.kickoff_time,
+            f.home_team_score,
+            f.away_team_score
+            FROM fixtures f
+            JOIN teams th ON f.home_team_id = th.id
+            JOIN teams ta ON f.away_team_id = ta.id
+            WHERE f.season_id = 'PULSELIVE_SEASON_719'
+            AND f.kickoff_time > NOW()
+            ORDER BY f.kickoff_time ASC
+            LIMIT 5
     """)
-    result = db.execute(query, {"competition_id": competition_id}).fetchall()
-    return {"seasons": [dict_to_camel_case(row._mapping) for row in result]}
+    result = db.execute(query).fetchall()
+    return {"upcomingGames" : [dict_to_camel_case(row._mapping) for row in result]}
+
+@router.get("/todayGames")
+def todayGames(db: Session = Depends(get_db)):
+    query = text("""
+                    SELECT 
+  f.id AS fixture_id,
+  th.short_name_en AS home_team,
+  ta.short_name_en AS away_team,
+  f.kickoff_time,
+  f.home_team_score,
+  f.away_team_score
+FROM fixtures f
+JOIN teams th ON f.home_team_id = th.id
+JOIN teams ta ON f.away_team_id = ta.id
+WHERE f.season_id = 'PULSELIVE_SEASON_719'
+  AND DATE(f.kickoff_time) = CURRENT_DATE
+ORDER BY f.kickoff_time ASC
+LIMIT 5
+    """)
+    result = db.execute(query).fetchall()
+    return {"todayGames" : [dict_to_camel_case(row._mapping) for row in result]}
+
+@router.get("/lastGames")
+def lastGames(db: Session = Depends(get_db)):
+    query = text("""
+SELECT 
+  f.id AS fixture_id,
+  th.short_name_en AS home_team,
+  ta.short_name_en AS away_team,
+  f.kickoff_time,
+  f.home_team_score,
+  f.away_team_score
+FROM fixtures f
+JOIN teams th ON f.home_team_id = th.id
+JOIN teams ta ON f.away_team_id = ta.id
+WHERE f.season_id = 'PULSELIVE_SEASON_719'
+  AND f.kickoff_time < NOW()
+ORDER BY f.kickoff_time DESC
+LIMIT 5
+    """)
+    result = db.execute(query).fetchall()
+    return {"lastGames" : [dict_to_camel_case(row._mapping) for row in result]}

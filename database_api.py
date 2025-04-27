@@ -23,6 +23,12 @@ def get_grounds(db: Session = Depends(get_db)):
     result = db.execute(query).fetchall()
     return {"grounds": [dict(row._mapping) for row in result]}
 
+@router.get("/player_stats")
+def get_players(db: Session = Depends(get_db)):
+    query = text("SELECT * FROM player_stats")
+    result = db.execute(query).fetchall()
+    return {"player_stats": [dict(row._mapping) for row in result]}
+
 @router.get("/players")
 def get_players(db: Session = Depends(get_db)):
     query = text("SELECT * FROM players")
@@ -35,11 +41,11 @@ def get_seasons(db: Session = Depends(get_db)):
     result = db.execute(query).fetchall()
     return {"seasons": [dict(row._mapping) for row in result]}
 
-@router.get("/standings")
+@router.get("/team_stats")
 def get_standings(db: Session = Depends(get_db)):
-    query = text("SELECT * FROM standings")
+    query = text("SELECT * FROM team_stats")
     result = db.execute(query).fetchall()
-    return {"standings": [dict(row._mapping) for row in result]}
+    return {"team_stats": [dict(row._mapping) for row in result]}
 
 
 @router.get("/teams")
