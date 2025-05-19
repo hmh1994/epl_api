@@ -15,6 +15,7 @@ def newsList(db : Session = Depends(get_db)):
                     title_kr, 
                     content_en, 
                     content_kr,
+                    url,
                     thumbnail_url,
                     source,
                     type,

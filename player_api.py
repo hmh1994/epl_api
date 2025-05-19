@@ -7,55 +7,66 @@ from model import dict_to_camel_case
 router = APIRouter(prefix="/api/v1/player", tags=["Players"])
 
 @router.get("/playerRankGoalAssist")
-def player_rank_gaol_assist(db: Session = Depends(get_db)):
+def player_rank_goal_assist(db: Session = Depends(get_db)):
     query = text("""
-                SELECT * FROM (
-                    SELECT
-                        ROW_NUMBER() OVER (ORDER BY ps.goals DESC) AS rank,
-                        p.full_name AS player_name,
-                        ps.player_id,
-                        k.name_en AS team_name,
-                        k.id AS team_id,
-                        ps.goals AS stat_value,
-                        p.photo_url,
-                        k.icon_url,
-                        'Top Scorers' AS category
-                    FROM player_stats ps
-                    JOIN players p ON ps.player_id = p.id
-                    JOIN teams k ON ps.team_id = k.id
-                    WHERE ps.season_id = 'PULSELIVE_SEASON_719'
-                    AND ps.goals > 0
-                    ORDER BY ps.goals DESC
-                    LIMIT 20
-                ) AS goal_rankings
+        SELECT * FROM (
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY ps.goals DESC) AS rank,
+                p.full_name AS player_name,
+                ps.player_id,
+                k.name_en AS team_name,
+                k.id AS team_id,
+                ps.goals AS stat_value,
+                p.photo_url,
+                k.icon_url,
+                'goal' AS category
+            FROM player_stats ps
+            JOIN players p ON ps.player_id = p.id
+            JOIN teams k ON ps.team_id = k.id
+            WHERE ps.season_id = 'PULSELIVE_SEASON_719'
+            AND ps.goals > 0
+            ORDER BY ps.goals DESC
+            LIMIT 20
+        ) AS goal_rankings
 
-                UNION ALL
+        UNION ALL
 
-                SELECT * FROM (
-                    SELECT
-                        ROW_NUMBER() OVER (ORDER BY ps.assists DESC) AS rank,
-                        p.full_name AS player_name,
-                        ps.player_id,
-                        k.name_en AS team_name,
-                        k.id AS team_id,
-                        ps.assists AS stat_value,
-                        p.photo_url,
-                        k.icon_url,
-                        'Top Assists' AS category
-                    FROM player_stats ps
-                    JOIN players p ON ps.player_id = p.id
-                    JOIN teams k ON ps.team_id = k.id
-                    WHERE ps.season_id = 'PULSELIVE_SEASON_719'
-                    AND ps.assists > 0
-                    ORDER BY ps.assists DESC
-                    LIMIT 20
-                ) AS assist_rankings
-                 """)
+        SELECT * FROM (
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY ps.assists DESC) AS rank,
+                p.full_name AS player_name,
+                ps.player_id,
+                k.name_en AS team_name,
+                k.id AS team_id,
+                ps.assists AS stat_value,
+                p.photo_url,
+                k.icon_url,
+                'assist' AS category
+            FROM player_stats ps
+            JOIN players p ON ps.player_id = p.id
+            JOIN teams k ON ps.team_id = k.id
+            WHERE ps.season_id = 'PULSELIVE_SEASON_719'
+            AND ps.assists > 0
+            ORDER BY ps.assists DESC
+            LIMIT 20
+        ) AS assist_rankings
+    """)
+
     result = db.execute(query).fetchall()
-    return {
-        "playerGoalAssistRank": [dict_to_camel_case(row._mapping) for row in result]
-    }
 
+    goal_ranks = []
+    assist_ranks = []
+    for row in result:
+        row_dict = dict_to_camel_case(row._mapping)
+        if row_dict["category"] == "goal":
+            goal_ranks.append(row_dict)
+        elif row_dict["category"] == "assist":
+            assist_ranks.append(row_dict)
+
+    return {
+        "goalRanks": goal_ranks,
+        "assistRanks": assist_ranks
+    }
 @router.get("/playerGoalRank")
 def player_goal_rank(db: Session = Depends(get_db)):
     query = text("""
@@ -67,7 +78,7 @@ def player_goal_rank(db: Session = Depends(get_db)):
             t.name_en AS team,
             t.id AS team_id,
             c.name_en AS league,
-            p.birth_country AS nationality,
+            p.birth_country_en AS nationality,
             DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
             ps.goals,
             ps.assists,
@@ -104,7 +115,7 @@ def player_assist_rank(db: Session = Depends(get_db)):
             t.name_en AS team,
             t.id AS team_id,
             c.name_en AS league,
-            p.birth_country AS nationality,
+            p.birth_country_en AS nationality,
             DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
             ps.goals,
             ps.assists,
@@ -140,7 +151,7 @@ def goalkeeper_rank(db: Session = Depends(get_db)):
             t.name_en AS team,
             t.id AS team_id,
             c.name_en AS league,
-            p.birth_country AS nationality,
+            p.birth_country_en AS nationality,
             DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
             ps.clean_sheets,
             ps.appearances,
@@ -174,7 +185,7 @@ def defender_rank(db: Session = Depends(get_db)):
             t.name_en AS team,
             t.id AS team_id,
             c.name_en AS league,
-            p.birth_country AS nationality,
+            p.birth_country_en AS nationality,
             DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
             ps.appearances,
             ps.goals,
