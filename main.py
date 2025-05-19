@@ -8,10 +8,11 @@ from database_api import router as database_router
 
 app = FastAPI()
 
+app.include_router(news_router)
 app.include_router(players_router)
 app.include_router(teams_router)
 app.include_router(games_router)
-app.include_router(news_router)
+
 app.include_router(database_router)
 
 @app.get("/")
