@@ -6,6 +6,56 @@ from model import dict_to_camel_case
 
 router = APIRouter(prefix="/api/v1/player", tags=["Players"])
 
+@router.get("/playerRankGoalAssist")
+def player_rank_gaol_assist(db: Session = Depends(get_db)):
+    query = text("""
+                SELECT * FROM (
+                    SELECT
+                        ROW_NUMBER() OVER (ORDER BY ps.goals DESC) AS rank,
+                        p.full_name AS player_name,
+                        ps.player_id,
+                        k.name_en AS team_name,
+                        k.id AS team_id,
+                        ps.goals AS stat_value,
+                        p.photo_url,
+                        k.icon_url,
+                        'Top Scorers' AS category
+                    FROM player_stats ps
+                    JOIN players p ON ps.player_id = p.id
+                    JOIN teams k ON ps.team_id = k.id
+                    WHERE ps.season_id = 'PULSELIVE_SEASON_719'
+                    AND ps.goals > 0
+                    ORDER BY ps.goals DESC
+                    LIMIT 20
+                ) AS goal_rankings
+
+                UNION ALL
+
+                SELECT * FROM (
+                    SELECT
+                        ROW_NUMBER() OVER (ORDER BY ps.assists DESC) AS rank,
+                        p.full_name AS player_name,
+                        ps.player_id,
+                        k.name_en AS team_name,
+                        k.id AS team_id,
+                        ps.assists AS stat_value,
+                        p.photo_url,
+                        k.icon_url,
+                        'Top Assists' AS category
+                    FROM player_stats ps
+                    JOIN players p ON ps.player_id = p.id
+                    JOIN teams k ON ps.team_id = k.id
+                    WHERE ps.season_id = 'PULSELIVE_SEASON_719'
+                    AND ps.assists > 0
+                    ORDER BY ps.assists DESC
+                    LIMIT 20
+                ) AS assist_rankings
+                 """)
+    result = db.execute(query).fetchall()
+    return {
+        "playerGoalAssistRank": [dict_to_camel_case(row._mapping) for row in result]
+    }
+
 @router.get("/playerGoalRank")
 def player_goal_rank(db: Session = Depends(get_db)):
     query = text("""
