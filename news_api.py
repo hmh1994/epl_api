@@ -40,5 +40,5 @@ def orm_to_dict(obj):
 
 @router.get("/list")
 def news_list(db: Session = Depends(get_db)):
-    news_list = db.query(News).order_by(News.publish_date.desc()).all()
+    news_list = db.query(News).order_by(News.publishDate.desc()).all()
     return {"newsList": [dict_to_camel_case(orm_to_dict(n)) for n in news_list]}
