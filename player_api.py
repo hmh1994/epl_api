@@ -6,7 +6,7 @@ from model import dict_to_camel_case
 
 router = APIRouter(prefix="/api/v1/player", tags=["Players"])
 
-@router.get("/playerRankGoalAssist")
+@router.get("/rank/goal-assist")
 def player_rank_goal_assist(db: Session = Depends(get_db)):
     query = text("""
         SELECT * FROM (
@@ -67,7 +67,7 @@ def player_rank_goal_assist(db: Session = Depends(get_db)):
         "goalRanks": goal_ranks,
         "assistRanks": assist_ranks
     }
-@router.get("/playerGoalRank")
+@router.get("/rank/goal")
 def player_goal_rank(db: Session = Depends(get_db)):
     query = text("""
         SELECT 
@@ -105,7 +105,7 @@ def player_goal_rank(db: Session = Depends(get_db)):
         "playerGoalRank": [dict_to_camel_case(row._mapping) for row in result]
     }
 
-@router.get("/playerAssistRank")
+@router.get("/rank/assist")
 def player_assist_rank(db: Session = Depends(get_db)):
     query = text("""
         SELECT 
@@ -141,7 +141,7 @@ def player_assist_rank(db: Session = Depends(get_db)):
         "playerAssistRank": [dict_to_camel_case(row._mapping) for row in result]
     }
 
-@router.get("/goalkeeperRank")
+@router.get("/rank/goal-keep")
 def goalkeeper_rank(db: Session = Depends(get_db)):
     query = text("""
         SELECT 
@@ -175,7 +175,7 @@ def goalkeeper_rank(db: Session = Depends(get_db)):
         "goalkeeperRank": [dict_to_camel_case(row._mapping) for row in result]
     }
 
-@router.get("/defenderRank")
+@router.get("/rank/defend")
 def defender_rank(db: Session = Depends(get_db)):
     query = text("""
         SELECT 

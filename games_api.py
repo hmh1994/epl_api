@@ -6,7 +6,7 @@ from model import dict_to_camel_case
 
 router = APIRouter(prefix="/api/v1/games", tags=["Games"])
 
-@router.get("/allgames")
+@router.get("/")
 def overall_teamrank(db : Session = Depends(get_db)):
     query = text("""
                  SELECT 
@@ -23,7 +23,7 @@ def overall_teamrank(db : Session = Depends(get_db)):
     result = db.execute(query).fetchall()
     return {"overallGames" : [dict_to_camel_case(row._mapping) for row in result]}
 
-@router.get("/upcomingGames")
+@router.get("/upcoming")
 def upcomingGames(db: Session = Depends(get_db)):
     query = text("""
                    SELECT 
@@ -50,7 +50,7 @@ LIMIT 10
     result = db.execute(query).fetchall()
     return {"upcomingGames" : [dict_to_camel_case(row._mapping) for row in result]}
 
-@router.get("/todayGames")
+@router.get("/today")
 def todayGames(db: Session = Depends(get_db)):
     query = text("""
                     SELECT 
@@ -71,7 +71,7 @@ LIMIT 5
     result = db.execute(query).fetchall()
     return {"todayGames" : [dict_to_camel_case(row._mapping) for row in result]}
 
-@router.get("/lastGames")
+@router.get("/last")
 def lastGames(db: Session = Depends(get_db)):
     query = text("""
 SELECT 

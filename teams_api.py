@@ -5,7 +5,7 @@ from database import get_db
 from model import dict_to_camel_case
 router = APIRouter(prefix="/api/v1/teams", tags=["Teams"])
 
-@router.get("/teamrank")
+@router.get("/rank")
 def overall_teamrank(db : Session = Depends(get_db)):
     query = text("""
                SELECT 
@@ -27,7 +27,7 @@ def overall_teamrank(db : Session = Depends(get_db)):
     result = db.execute(query).fetchall()
     return {"overallTeamrank" : [dict_to_camel_case(row._mapping) for row in result]}
 
-@router.get("/teamrankdetail")
+@router.get("/rank/detail")
 def overall_teamrank_detail(db : Session = Depends(get_db)):
     query = text("""
                             WITH recent_fixtures AS (
@@ -100,7 +100,7 @@ def overall_teamrank_detail(db : Session = Depends(get_db)):
     result = db.execute(query).fetchall()
     return {"overallTeamrankDetail" : [dict_to_camel_case(row._mapping) for row in result]}
 
-@router.get("/top_score_team")
+@router.get("/rank/score")
 def top_score_team(db : Session = Depends(get_db)):
     query = text("""
                 SELECT
@@ -119,7 +119,7 @@ def top_score_team(db : Session = Depends(get_db)):
     return {"topScoreTeam" : [dict_to_camel_case(row._mapping) for row in result]}
 
 
-@router.get("/top_defend_team")
+@router.get("/rank/defend")
 def top_defend_team(db : Session = Depends(get_db)):
     query = text("""
                 SELECT
@@ -137,7 +137,7 @@ def top_defend_team(db : Session = Depends(get_db)):
     result = db.execute(query).fetchall()
     return {"topDefendTeam" : [dict_to_camel_case(row._mapping) for row in result]}
 
-@router.get("/top_points_team")
+@router.get("/rank/point")
 def top_points_team(db : Session = Depends(get_db)):
     query = text("""
                 SELECT

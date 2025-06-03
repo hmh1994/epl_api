@@ -6,7 +6,7 @@ from model import dict_to_camel_case
 
 router = APIRouter(prefix="/api/v1/news", tags=["News"])
 
-@router.get("/newsList")
+@router.get("/list")
 def newsList(db : Session = Depends(get_db)):
     query = text("""
                  SELECT 
