@@ -7,8 +7,8 @@ class NewsSchema(BaseModel):
     titleKr: str
     contentEn: str
     contentKr: str
-    url: str
-    thumbnailUrl: str
+    newsLink: str
+    titleImage: str
     source: str
     type: str
     publishDate: datetime
