@@ -29,7 +29,8 @@ def newsList(db : Session = Depends(get_db)):
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database import get_db
-from models import News, dict_to_camel_case
+from models import News 
+from model import dict_to_camel_case
 
 router = APIRouter(prefix="/api/v1/news", tags=["News"])
 
