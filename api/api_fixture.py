@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text 
-from database import get_db
-from model import dict_to_camel_case
+from lib.lib_database import get_db
+
 
 router = APIRouter(prefix="/api/v1/games", tags=["Games"])
 
@@ -21,7 +21,7 @@ def overall_teamrank(db : Session = Depends(get_db)):
                  JOIN teams at ON f.away_team_id = at.id
     """)
     result = db.execute(query).fetchall()
-    return {"overallGames" : [dict_to_camel_case(row._mapping) for row in result]}
+    return {"overallGames" : [dict(row._mapping) for row in result]}
 
 @router.get("/upcoming")
 def upcomingGames(db: Session = Depends(get_db)):
@@ -48,7 +48,7 @@ ORDER BY f.kickoff_time ASC
 LIMIT 10
     """)
     result = db.execute(query).fetchall()
-    return {"upcomingGames" : [dict_to_camel_case(row._mapping) for row in result]}
+    return {"upcomingGames" : [dict(row._mapping) for row in result]}
 
 @router.get("/today")
 def todayGames(db: Session = Depends(get_db)):
@@ -69,7 +69,7 @@ ORDER BY f.kickoff_time ASC
 LIMIT 5
     """)
     result = db.execute(query).fetchall()
-    return {"todayGames" : [dict_to_camel_case(row._mapping) for row in result]}
+    return {"todayGames" : [dict(row._mapping) for row in result]}
 
 @router.get("/last")
 def lastGames(db: Session = Depends(get_db)):
@@ -90,4 +90,4 @@ ORDER BY f.kickoff_time DESC
 LIMIT 5
     """)
     result = db.execute(query).fetchall()
-    return {"lastGames" : [dict_to_camel_case(row._mapping) for row in result]}
+    return {"lastGames" : [dict(row._mapping) for row in result]}

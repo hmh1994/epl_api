@@ -1,5 +1,41 @@
-from sqlalchemy import Column, Integer, String, DateTime
-from database import Base
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, Date
+from lib.lib_database import Base
+
+'''
+ public | competitions | table | postgres
+ public | fixtures     | table | postgres
+ public | grounds      | table | postgres
+ public | metadata     | table | postgres
+ public | news         | table | postgres
+ public | player_stats | table | postgres
+ public | players      | table | postgres
+ public | seasons      | table | postgres
+ public | team_stats   | table | postgres
+ public | teams        | table | postgres
+'''
+# --------------------
+# News Mapper
+# --------------------
+class News(Base):
+    __tablename__ = "news"
+
+    authorEn = Column("author_en", String, nullable=True)
+    authorKr = Column("author_kr", String, nullable=True)
+    contentEn = Column("content_en", String, nullable=True)
+    contentKo = Column("content_kr", String, nullable=True)
+    publishDate = Column("publish_date", DateTime, nullable=True)
+    newsLink = Column("url", String, nullable=True)
+    source = Column("source", String, nullable=True)
+    teams = Column("teams", String, nullable=True)
+    newsImg = Column("thumbnail_url", String, nullable=True)
+    titleEn = Column("title_en", String, nullable=True)
+    titleKo = Column("title_kr", String, nullable=True)
+    newsType = Column("type", String, nullable=True)
+    newsId = Column("id", String, primary_key=True, index=True)
+    sourceId = Column("source_id", String, nullable=True)
+    
+    
+    
 
 class Competition(Base):
     __tablename__ = "competitions"
@@ -85,17 +121,3 @@ class Team(Base):
     source = Column(String, nullable=True)
     sourceId = Column("source_id", String, nullable=True)
 
-
-class News(Base):
-    __tablename__ = "news"
-
-    newsId = Column("id", Integer, primary_key=True, index=True)
-    titleEn = Column("title_en", String)
-    titleKo = Column("title_kr", String)
-    contentEn = Column("content_en", String)
-    contentKo = Column("content_kr", String)
-    newsLink = Column("url", String)
-    newsImg = Column("thumbnail_url", String)
-    source = Column("source", String)
-    type = Column("type", String)
-    publishDate = Column("publish_date", DateTime)

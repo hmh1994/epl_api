@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text 
-from database import get_db
-from model import dict_to_camel_case
+from lib.lib_database import get_db
+
 router = APIRouter(prefix="/api/v1/teams", tags=["Teams"])
 
 @router.get("/rank")
@@ -25,7 +25,7 @@ def overall_teamrank(db : Session = Depends(get_db)):
                 ORDER BY ts.overall_points DESC
                  """)
     result = db.execute(query).fetchall()
-    return {"overallTeamrank" : [dict_to_camel_case(row._mapping) for row in result]}
+    return {"overallTeamrank" : [dict(row._mapping) for row in result]}
 
 @router.get("/rank/detail")
 def overall_teamrank_detail(db : Session = Depends(get_db)):
@@ -98,7 +98,7 @@ def overall_teamrank_detail(db : Session = Depends(get_db)):
                     ts.overall_points DESC
                  """)
     result = db.execute(query).fetchall()
-    return {"overallTeamrankDetail" : [dict_to_camel_case(row._mapping) for row in result]}
+    return {"overallTeamrankDetail" : [dict(row._mapping) for row in result]}
 
 @router.get("/rank/score")
 def top_score_team(db : Session = Depends(get_db)):
@@ -116,7 +116,7 @@ def top_score_team(db : Session = Depends(get_db)):
                 LIMIT 5
     """)
     result = db.execute(query).fetchall()
-    return {"topScoreTeam" : [dict_to_camel_case(row._mapping) for row in result]}
+    return {"topScoreTeam" : [dict(row._mapping) for row in result]}
 
 
 @router.get("/rank/defend")
@@ -135,7 +135,7 @@ def top_defend_team(db : Session = Depends(get_db)):
                 LIMIT 5
     """)
     result = db.execute(query).fetchall()
-    return {"topDefendTeam" : [dict_to_camel_case(row._mapping) for row in result]}
+    return {"topDefendTeam" : [dict(row._mapping) for row in result]}
 
 @router.get("/rank/point")
 def top_points_team(db : Session = Depends(get_db)):
@@ -153,4 +153,4 @@ def top_points_team(db : Session = Depends(get_db)):
                 LIMIT 5
     """)
     result = db.execute(query).fetchall()
-    return {"topPointTeam" : [dict_to_camel_case(row._mapping) for row in result]}
+    return {"topPointTeam" : [dict(row._mapping) for row in result]}

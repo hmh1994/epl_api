@@ -1,21 +1,14 @@
 from fastapi import FastAPI
-from player_api import router as players_router
-from teams_api import router as teams_router
-from games_api import router as games_router
-from news_api import router as news_router
-from database_api import router as database_router
-
+from api.api_player import router as players_router
+from api.api_team import router as teams_router
+from api.api_fixture import router as games_router
+from api.api_news import router as news_router
+from api.api_database import router as database_router
 
 app = FastAPI()
 
 app.include_router(news_router)
-app.include_router(players_router)
-app.include_router(teams_router)
-app.include_router(games_router)
-
 app.include_router(database_router)
-
-@app.get("/")
-def root():
-    return {"ROOT"}
-
+#app.include_router(players_router)
+#app.include_router(teams_router)
+#app.include_router(games_router)

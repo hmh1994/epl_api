@@ -1,17 +1,10 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text  
-from database import get_db
-from model import dict_to_camel_case
+from lib.lib_database import get_db
 
 router = APIRouter(prefix="/api/v1/player", tags=["Players"])
 
-<<<<<<< HEAD
-@router.get("/playerRank")
-
-def player_rank(db : Session = Depends(get_db)):
-    query = text("SELECT * from players")
-=======
 @router.get("/rank/goal-assist")
 def player_rank_goal_assist(db: Session = Depends(get_db)):
     query = text("""
@@ -57,14 +50,12 @@ def player_rank_goal_assist(db: Session = Depends(get_db)):
             LIMIT 20
         ) AS assist_rankings
     """)
-
->>>>>>> 82404e4 (2025-05-12 commit)
     result = db.execute(query).fetchall()
 
     goal_ranks = []
     assist_ranks = []
     for row in result:
-        row_dict = dict_to_camel_case(row._mapping)
+        row_dict = dict(row._mapping)
         if row_dict["category"] == "goal":
             goal_ranks.append(row_dict)
         elif row_dict["category"] == "assist":
@@ -109,7 +100,7 @@ def player_goal_rank(db: Session = Depends(get_db)):
 
     result = db.execute(query).fetchall()
     return {
-        "playerGoalRank": [dict_to_camel_case(row._mapping) for row in result]
+        "playerGoalRank": [dict(row._mapping) for row in result]
     }
 
 @router.get("/rank/assist")
@@ -145,7 +136,7 @@ def player_assist_rank(db: Session = Depends(get_db)):
     """)
     result = db.execute(query).fetchall()
     return {
-        "playerAssistRank": [dict_to_camel_case(row._mapping) for row in result]
+        "playerAssistRank": [dict(row._mapping) for row in result]
     }
 
 @router.get("/rank/goal-keep")
@@ -179,7 +170,7 @@ def goalkeeper_rank(db: Session = Depends(get_db)):
     """)
     result = db.execute(query).fetchall()
     return {
-        "goalkeeperRank": [dict_to_camel_case(row._mapping) for row in result]
+        "goalkeeperRank": [dict(row._mapping) for row in result]
     }
 
 @router.get("/rank/defend")
@@ -214,5 +205,5 @@ def defender_rank(db: Session = Depends(get_db)):
     """)
     result = db.execute(query).fetchall()
     return {
-        "defenderRank": [dict_to_camel_case(row._mapping) for row in result]
+        "defenderRank": [dict(row._mapping) for row in result]
     }
