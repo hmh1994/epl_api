@@ -4,7 +4,7 @@ from sqlalchemy.inspection import inspect
 from lib.lib_database import get_db
 from lib.lib_models import News
 
-router = APIRouter(prefix="/api/v1/news", tags=["News"])  # 반드시 이 부분 있어야 함
+router = APIRouter(prefix="/api/v1/news", tags=["News"])
 
 def orm_to_dict(obj):
     return {c.key: getattr(obj, c.key) for c in inspect(obj).mapper.column_attrs}
