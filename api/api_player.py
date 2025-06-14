@@ -1,61 +1,87 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy.sql import text  
+from sqlalchemy.sql import text 
 from lib.lib_database import get_db
+from lib.lib_camel import dict_to_camel_case
 
 router = APIRouter(prefix="/api/v1/player", tags=["Players"])
 
 @router.get("/rank/goal-assist")
 def player_rank_goal_assist(db: Session = Depends(get_db)):
     query = text("""
-        SELECT * FROM (
-            SELECT
-                ROW_NUMBER() OVER (ORDER BY ps.goals DESC) AS rank,
-                p.full_name AS player_name,
-                ps.player_id,
-                k.name_en AS team_name,
-                k.id AS team_id,
-                ps.goals AS stat_value,
-                p.photo_url,
-                k.icon_url,
-                'goal' AS category
-            FROM player_stats ps
-            JOIN players p ON ps.player_id = p.id
-            JOIN teams k ON ps.team_id = k.id
-            WHERE ps.season_id = 'PULSELIVE_SEASON_719'
-            AND ps.goals > 0
-            ORDER BY ps.goals DESC
-            LIMIT 20
-        ) AS goal_rankings
+WITH latest_season AS (
+    SELECT s.id
+    FROM seasons s
+    JOIN competitions c ON s.competition_id = c.id
+    WHERE c.abbreviation = 'EN_PR'
+    ORDER BY s.date_end DESC
+    LIMIT 1
+)
+SELECT * FROM (
+SELECT 
+	RANK() OVER (ORDER BY ps.goals DESC) AS rank,
+	number,
+	ps.player_id,	
+	p.display_name_en AS player_name_en,
+	p.display_name_kr AS player_name_kr,
+	p.full_name AS player_full_name,
+	p.photo_url as player_img,
+    p.birth_country_en as countryEn,
+    p.birth_country_kr as countryKr,
+	ps.team_id, 
+	t.name_en AS team_name_en,
+	t.name_kr AS team_name_kr, 
+	t.short_name_en AS steam_name_en,
+	t.short_name_kr AS steam_name_kr,
+	t.icon_url AS team_icon,
+	ps.appearances,
+	ps.goals,
+    ps.assists,
+	DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
+    'goal' AS category
+FROM player_stats ps
+JOIN players p ON ps.player_id = p.id
+JOIN teams t ON ps.team_id = t.id
+WHERE ps.season_id = (SELECT id FROM latest_season)
+LIMIT 5) as goal_ranks
 
-        UNION ALL
-
-        SELECT * FROM (
-            SELECT
-                ROW_NUMBER() OVER (ORDER BY ps.assists DESC) AS rank,
-                p.full_name AS player_name,
-                ps.player_id,
-                k.name_en AS team_name,
-                k.id AS team_id,
-                ps.assists AS stat_value,
-                p.photo_url,
-                k.icon_url,
-                'assist' AS category
-            FROM player_stats ps
-            JOIN players p ON ps.player_id = p.id
-            JOIN teams k ON ps.team_id = k.id
-            WHERE ps.season_id = 'PULSELIVE_SEASON_719'
-            AND ps.assists > 0
-            ORDER BY ps.assists DESC
-            LIMIT 20
-        ) AS assist_rankings
+UNION ALL
+select * from (
+SELECT 
+	RANK() OVER (ORDER BY ps.assists DESC) AS rank,
+	number,
+	ps.player_id,	
+	p.display_name_en AS player_name_en,
+	p.display_name_kr AS player_name_kr,
+	p.full_name AS player_full_name,
+	p.photo_url as player_img,
+    p.birth_country_en as countryEn,
+    p.birth_country_kr as countryKr,
+	ps.team_id, 
+	t.name_en AS team_name_en,
+	t.name_kr AS team_name_kr, 
+	t.short_name_en AS steam_name_en,
+	t.short_name_kr AS steam_name_kr,
+	t.icon_url AS team_icon,
+	ps.appearances,
+    ps.goals,
+	ps.assists,
+	DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
+    'assist' AS category
+FROM player_stats ps
+JOIN players p ON ps.player_id = p.id
+JOIN teams t ON ps.team_id = t.id
+WHERE ps.season_id = (SELECT id FROM latest_season)
+LIMIT 5
+) as assist_ranks
     """)
+
     result = db.execute(query).fetchall()
 
     goal_ranks = []
     assist_ranks = []
     for row in result:
-        row_dict = dict(row._mapping)
+        row_dict = dict_to_camel_case(row._mapping)
         if row_dict["category"] == "goal":
             goal_ranks.append(row_dict)
         elif row_dict["category"] == "assist":
@@ -65,145 +91,170 @@ def player_rank_goal_assist(db: Session = Depends(get_db)):
         "goalRanks": goal_ranks,
         "assistRanks": assist_ranks
     }
+
+
 @router.get("/rank/goal")
 def player_goal_rank(db: Session = Depends(get_db)):
     query = text("""
-        SELECT 
-            RANK() OVER (ORDER BY ps.goals DESC) AS rank,
-            ps.number,
-            p.display_name_en AS player,
-            p.id AS player_id,
-            t.name_en AS team,
-            t.id AS team_id,
-            c.name_en AS league,
-            p.birth_country_en AS nationality,
-            DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
-            ps.goals,
-            ps.assists,
-            ps.appearances,
-            ROUND(CASE 
-                WHEN ps.appearances = 0 THEN 0
-                ELSE ps.goals::decimal / ps.appearances 
-            END, 2) AS goals_per_match,
-            p.photo_url AS avatar,
-            t.icon_url AS team_logo
-        FROM player_stats ps
-        JOIN players p ON ps.player_id = p.id
-        JOIN teams t ON ps.team_id = t.id
-        JOIN seasons s ON ps.season_id = s.id
-        JOIN competitions c ON s.competition_id = c.id
-        WHERE ps.season_id = 'PULSELIVE_SEASON_719'
-        AND s.competition_id = 'PULSELIVE_COMPETITION_1'
-        ORDER BY ps.goals DESC, ps.appearances ASC
-        LIMIT 10
+WITH latest_season AS (
+    SELECT s.id
+    FROM seasons s
+    JOIN competitions c ON s.competition_id = c.id
+    WHERE c.abbreviation = 'EN_PR'
+    ORDER BY s.date_end DESC
+    LIMIT 1
+)
+SELECT 
+	RANK() OVER (ORDER BY ps.goals DESC) AS rank,
+	number,
+	ps.player_id,	
+	p.display_name_en AS player_name_en,
+	p.display_name_kr AS player_name_kr,
+	p.full_name AS player_full_name,
+	p.photo_url as player_img,
+    p.birth_country_en as countryEn,
+    p.birth_country_kr as countryKr,
+	ps.team_id, 
+	t.name_en AS team_name_en,
+	t.name_kr AS team_name_kr, 
+	t.short_name_en AS steam_name_en,
+	t.short_name_kr AS steam_name_kr,
+	t.icon_url AS team_icon,
+	ps.appearances,
+	ps.goals,
+    ps.assists,
+	DATE_PART('year', AGE(NOW(), p.birth_date)) AS age
+FROM player_stats ps
+JOIN players p ON ps.player_id = p.id
+JOIN teams t ON ps.team_id = t.id
+WHERE ps.season_id = (SELECT id FROM latest_season)
+LIMIT 10
     """)
 
     result = db.execute(query).fetchall()
     return {
-        "playerGoalRank": [dict(row._mapping) for row in result]
+        "playerGoalRank": [dict_to_camel_case(row._mapping) for row in result]
     }
 
 @router.get("/rank/assist")
 def player_assist_rank(db: Session = Depends(get_db)):
     query = text("""
-        SELECT 
-            RANK() OVER (ORDER BY ps.assists DESC) AS rank,
-            p.display_name_en AS player,
-            p.id AS player_id,
-            t.name_en AS team,
-            t.id AS team_id,
-            c.name_en AS league,
-            p.birth_country_en AS nationality,
-            DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
-            ps.goals,
-            ps.assists,
-            ps.appearances,
-            ROUND(CASE 
-                WHEN ps.appearances = 0 THEN 0
-                ELSE ps.assists::decimal / ps.appearances 
-            END, 2) AS assists_per_match,
-            p.photo_url AS avatar,
-            t.icon_url AS team_logo
-        FROM player_stats ps
-        JOIN players p ON ps.player_id = p.id
-        JOIN teams t ON ps.team_id = t.id
-        JOIN seasons s ON ps.season_id = s.id
-        JOIN competitions c ON s.competition_id = c.id
-        WHERE ps.season_id = 'PULSELIVE_SEASON_719'
-        AND s.competition_id = 'PULSELIVE_COMPETITION_1'
-        ORDER BY ps.assists DESC, ps.appearances ASC
-        LIMIT 10
+       WITH latest_season AS (
+    SELECT s.id
+    FROM seasons s
+    JOIN competitions c ON s.competition_id = c.id
+    WHERE c.abbreviation = 'EN_PR'
+    ORDER BY s.date_end DESC
+    LIMIT 1
+)
+SELECT 
+	RANK() OVER (ORDER BY ps.assists DESC) AS rank,
+	number,
+	ps.player_id,	
+	p.display_name_en AS player_name_en,
+	p.display_name_kr AS player_name_kr,
+	p.full_name AS player_full_name,
+	p.photo_url as player_img,
+    p.birth_country_en as countryEn,
+    p.birth_country_kr as countryKr,
+	ps.team_id, 
+	t.name_en AS team_name_en,
+	t.name_kr AS team_name_kr, 
+	t.short_name_en AS steam_name_en,
+	t.short_name_kr AS steam_name_kr,
+	t.icon_url AS team_icon,
+	ps.appearances,
+	ps.goals,
+    ps.assists,
+	DATE_PART('year', AGE(NOW(), p.birth_date)) AS age
+FROM player_stats ps
+JOIN players p ON ps.player_id = p.id
+JOIN teams t ON ps.team_id = t.id
+WHERE ps.season_id = (SELECT id FROM latest_season)
+LIMIT 10
     """)
     result = db.execute(query).fetchall()
     return {
-        "playerAssistRank": [dict(row._mapping) for row in result]
+        "playerAssistRank": [dict_to_camel_case(row._mapping) for row in result]
     }
 
 @router.get("/rank/goal-keep")
 def goalkeeper_rank(db: Session = Depends(get_db)):
     query = text("""
-        SELECT 
-            RANK() OVER (ORDER BY ps.clean_sheets DESC) AS rank,
-            p.display_name_en AS player,
-            p.id AS player_id,
-            t.name_en AS team,
-            t.id AS team_id,
-            c.name_en AS league,
-            p.birth_country_en AS nationality,
-            DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
-            ps.clean_sheets,
-            ps.appearances,
-            ps.goals_conceded,
-            ps.saves,
-            p.photo_url AS avatar,
-            t.icon_url AS team_logo
-        FROM player_stats ps
-        JOIN players p ON ps.player_id = p.id
-        JOIN teams t ON ps.team_id = t.id
-        JOIN seasons s ON ps.season_id = s.id
-        JOIN competitions c ON s.competition_id = c.id
-        WHERE ps.season_id = 'PULSELIVE_SEASON_719'
-        AND s.competition_id = 'PULSELIVE_COMPETITION_1'
-        AND p.position = 'G'
-        ORDER BY ps.clean_sheets DESC, ps.goals_conceded ASC
-        LIMIT 10
+       WITH latest_season AS (
+    SELECT s.id
+    FROM seasons s
+    JOIN competitions c ON s.competition_id = c.id
+    WHERE c.abbreviation = 'EN_PR'
+    ORDER BY s.date_end DESC
+    LIMIT 1
+)
+SELECT 
+	RANK() OVER (ORDER BY ps.saves DESC) AS rank,
+	number,
+	ps.player_id,	
+	p.display_name_en AS player_name_en,
+	p.display_name_kr AS player_name_kr,
+	p.full_name AS player_full_name,
+	p.photo_url as player_img,
+    
+	ps.team_id, 
+	t.name_en AS team_name_en,
+	t.name_kr AS team_name_kr, 
+	t.short_name_en AS steam_name_en,
+	t.short_name_kr AS steam_name_kr,
+	t.icon_url AS team_icon,
+	ps.appearances,
+	ps.saves,
+	DATE_PART('year', AGE(NOW(), p.birth_date)) AS age
+FROM player_stats ps
+JOIN players p ON ps.player_id = p.id
+JOIN teams t ON ps.team_id = t.id
+WHERE ps.season_id = (SELECT id FROM latest_season)
+LIMIT 10
     """)
     result = db.execute(query).fetchall()
     return {
-        "goalkeeperRank": [dict(row._mapping) for row in result]
+        "playerGoalKeepRank": [dict_to_camel_case(row._mapping) for row in result]
     }
 
 @router.get("/rank/defend")
 def defender_rank(db: Session = Depends(get_db)):
     query = text("""
-        SELECT 
-            RANK() OVER (ORDER BY ps.clean_sheets DESC) AS rank,
-            p.display_name_en AS player,
-            p.id AS player_id,
-            t.name_en AS team,
-            t.id AS team_id,
-            c.name_en AS league,
-            p.birth_country_en AS nationality,
-            DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
-            ps.appearances,
-            ps.goals,
-            ps.assists,
-            ps.clean_sheets,
-            ps.tackles,
-            p.photo_url AS avatar,
-            t.icon_url AS team_logo
-        FROM player_stats ps
-        JOIN players p ON ps.player_id = p.id
-        JOIN teams t ON ps.team_id = t.id
-        JOIN seasons s ON ps.season_id = s.id
-        JOIN competitions c ON s.competition_id = c.id
-        WHERE ps.season_id = 'PULSELIVE_SEASON_719'
-        AND s.competition_id = 'PULSELIVE_COMPETITION_1'
-        AND p.position IN ('D')  -- 수비수
-        ORDER BY ps.clean_sheets DESC, ps.appearances DESC
-        LIMIT 10
+       WITH latest_season AS (
+    SELECT s.id
+    FROM seasons s
+    JOIN competitions c ON s.competition_id = c.id
+    WHERE c.abbreviation = 'EN_PR'
+    ORDER BY s.date_end DESC
+    LIMIT 1
+)
+SELECT 
+	RANK() OVER (ORDER BY ps.clean_sheets DESC) AS rank,
+	number,
+	ps.player_id,	
+	p.display_name_en AS player_name_en,
+	p.display_name_kr AS player_name_kr,
+	p.full_name AS player_full_name,
+	p.photo_url as player_img,
+    p.birth_country_en as countryEn,
+    p.birth_country_kr as countryKr,
+	ps.team_id, 
+	t.name_en AS team_name_en,
+	t.name_kr AS team_name_kr, 
+	t.short_name_en AS steam_name_en,
+	t.short_name_kr AS steam_name_kr,
+	t.icon_url AS team_icon,
+	ps.appearances,
+	ps.clean_sheets,
+	DATE_PART('year', AGE(NOW(), p.birth_date)) AS age
+FROM player_stats ps
+JOIN players p ON ps.player_id = p.id
+JOIN teams t ON ps.team_id = t.id
+WHERE ps.season_id = (SELECT id FROM latest_season)
+LIMIT 10
     """)
     result = db.execute(query).fetchall()
     return {
-        "defenderRank": [dict(row._mapping) for row in result]
+        "playerDefendRank": [dict_to_camel_case(row._mapping) for row in result]
     }
