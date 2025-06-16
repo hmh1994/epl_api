@@ -112,8 +112,8 @@ SELECT
 	p.display_name_kr AS player_name_kr,
 	p.full_name AS player_full_name,
 	p.photo_url as player_img,
-    p.birth_country_en as countryEn,
-    p.birth_country_kr as countryKr,
+    p.birth_country_en as country_en,
+    p.birth_country_kr as country_kr,
 	ps.team_id, 
 	t.name_en AS team_name_en,
 	t.name_kr AS team_name_kr, 
@@ -304,7 +304,7 @@ def defender_rank(playerId: str, db: Session = Depends(get_db)):
 	""")    
     result = db.execute(query, {"player_id": playerId}).fetchall()
     return {
-        "playerInfo": [transform_row(row) for row in result]
+        "playerInfo": transform_row(result) 
 	}
 
 def transform_row(row):
@@ -320,6 +320,6 @@ def transform_row(row):
     base = dict_to_camel_case(data)
     season_stats_camel = dict_to_camel_case(season_stats)
 
-    base["seasonStats"] = season_stats_camel
+    base["seasonStats"] = [season_stats_camel]
 
     return base
