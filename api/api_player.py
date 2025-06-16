@@ -302,7 +302,7 @@ def defender_rank(playerId: str, db: Session = Depends(get_db)):
 	JOIN seasons s ON ls.id = s.id
 	WHERE p.id = :player_id
 	""")    
-    result = db.execute(query, {"player_id": playerId}).fetchall()
+    result = db.execute(query, {"player_id": playerId}).fetchone()
     return {
         "playerInfo": transform_row(result) 
 	}
