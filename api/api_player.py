@@ -20,7 +20,7 @@ WITH latest_season AS (
 SELECT * FROM (
 SELECT 
 	RANK() OVER (ORDER BY ps.goals DESC) AS rank,
-	number,
+	number AS shirt_number,
 	ps.player_id,	
 	p.display_name_en AS player_name_en,
 	p.display_name_kr AS player_name_kr,
@@ -31,8 +31,8 @@ SELECT
 	ps.team_id, 
 	t.name_en AS team_name_en,
 	t.name_kr AS team_name_kr, 
-	t.short_name_en AS steam_name_en,
-	t.short_name_kr AS steam_name_kr,
+	t.short_name_en AS short_team_name_en,
+	t.short_name_kr AS short_team_name_kr,
 	t.icon_url AS team_icon,
 	ps.appearances,
 	ps.goals,
@@ -49,7 +49,7 @@ UNION ALL
 select * from (
 SELECT 
 	RANK() OVER (ORDER BY ps.assists DESC) AS rank,
-	number,
+	number AS shirt_number,
 	ps.player_id,	
 	p.display_name_en AS player_name_en,
 	p.display_name_kr AS player_name_kr,
@@ -60,8 +60,8 @@ SELECT
 	ps.team_id, 
 	t.name_en AS team_name_en,
 	t.name_kr AS team_name_kr, 
-	t.short_name_en AS steam_name_en,
-	t.short_name_kr AS steam_name_kr,
+	t.short_name_en AS short_team_name_en,
+	t.short_name_kr AS short_team_name_kr,
 	t.icon_url AS team_icon,
 	ps.appearances,
     ps.goals,
@@ -106,7 +106,7 @@ WITH latest_season AS (
 )
 SELECT 
 	RANK() OVER (ORDER BY ps.goals DESC) AS rank,
-	number,
+	number AS shirt_number,
 	ps.player_id,	
 	p.display_name_en AS player_name_en,
 	p.display_name_kr AS player_name_kr,
@@ -117,8 +117,8 @@ SELECT
 	ps.team_id, 
 	t.name_en AS team_name_en,
 	t.name_kr AS team_name_kr, 
-	t.short_name_en AS steam_name_en,
-	t.short_name_kr AS steam_name_kr,
+	t.short_name_en AS short_team_name_en,
+	t.short_name_kr AS short_team_name_kr,
 	t.icon_url AS team_icon,
 	ps.appearances,
 	ps.goals,
@@ -149,7 +149,7 @@ def player_assist_rank(db: Session = Depends(get_db)):
 )
 SELECT 
 	RANK() OVER (ORDER BY ps.assists DESC) AS rank,
-	number,
+	number AS shirt_number,
 	ps.player_id,	
 	p.display_name_en AS player_name_en,
 	p.display_name_kr AS player_name_kr,
@@ -160,8 +160,8 @@ SELECT
 	ps.team_id, 
 	t.name_en AS team_name_en,
 	t.name_kr AS team_name_kr, 
-	t.short_name_en AS steam_name_en,
-	t.short_name_kr AS steam_name_kr,
+	t.short_name_en AS short_team_name_en,
+	t.short_name_kr AS short_team_name_kr,
 	t.icon_url AS team_icon,
 	ps.appearances,
 	ps.goals,
@@ -191,18 +191,17 @@ def goalkeeper_rank(db: Session = Depends(get_db)):
 )
 SELECT 
 	RANK() OVER (ORDER BY ps.saves DESC) AS rank,
-	number,
+	number AS shirt_number,
 	ps.player_id,	
 	p.display_name_en AS player_name_en,
 	p.display_name_kr AS player_name_kr,
 	p.full_name AS player_full_name,
-	p.photo_url as player_img,
-    
+	p.photo_url as player_img,    
 	ps.team_id, 
 	t.name_en AS team_name_en,
 	t.name_kr AS team_name_kr, 
-	t.short_name_en AS steam_name_en,
-	t.short_name_kr AS steam_name_kr,
+	t.short_name_en AS short_team_name_en,
+	t.short_name_kr AS short_team_name_kr,
 	t.icon_url AS team_icon,
 	ps.appearances,
 	ps.saves,
@@ -231,7 +230,7 @@ def defender_rank(db: Session = Depends(get_db)):
 )
 SELECT 
 	RANK() OVER (ORDER BY ps.clean_sheets DESC) AS rank,
-	number,
+	number AS shirt_number,
 	ps.player_id,	
 	p.display_name_en AS player_name_en,
 	p.display_name_kr AS player_name_kr,
@@ -242,8 +241,8 @@ SELECT
 	ps.team_id, 
 	t.name_en AS team_name_en,
 	t.name_kr AS team_name_kr, 
-	t.short_name_en AS steam_name_en,
-	t.short_name_kr AS steam_name_kr,
+	t.short_name_en AS short_team_name_en,
+	t.short_name_kr AS short_team_name_kr,
 	t.icon_url AS team_icon,
 	ps.appearances,
 	ps.clean_sheets,
@@ -259,7 +258,7 @@ LIMIT 10
         "playerDefendRank": [dict_to_camel_case(row._mapping) for row in result]
     }
 
-@router.get("/info/{playerId}")
+@router.get("/{playerId}")
 def defender_rank(playerId: str, db: Session = Depends(get_db)):
     query = text("""
 	WITH latest_season AS (
@@ -278,7 +277,7 @@ def defender_rank(playerId: str, db: Session = Depends(get_db)):
 	p.position,
 	p.position_info_en,
 	p.position_info_kr,
-	ps.number,
+	ps.number AS shirt_number,
 	p.national_team,
 	DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
 	p.birth_date,
@@ -304,7 +303,7 @@ def defender_rank(playerId: str, db: Session = Depends(get_db)):
 	""")    
     result = db.execute(query, {"player_id": playerId}).fetchone()
     return {
-        "playerInfo": transform_row(result) 
+        transform_row(result) 
 	}
 
 def transform_row(row):

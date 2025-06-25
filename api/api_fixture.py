@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import text 
 from lib.lib_database import get_db
 from lib.lib_camel import dict_to_camel_case
+from datetime import datetime, timedelta
+import pytz
 
 router = APIRouter(prefix="/api/v1/match", tags=["Matches"])
 
@@ -71,8 +73,21 @@ ORDER BY fx.kickoff_time DESC
     result = db.execute(query).fetchall()
     return {"allMatchUp" : [dict_to_camel_case(row._mapping) for row in result]}
 
-@router.get("/{date}")
-def match_up_by_date(date: str, db: Session = Depends(get_db)):
+@router.get("/{timestamp}")
+def match_up_by_date(timestamp: int, db: Session = Depends(get_db)):
+    kst = pytz.timezone("Asia/Seoul")
+
+    try:
+        dt_utc = datetime.utcfromtimestamp(timestamp).replace(tzinfo=pytz.utc)
+        dt_kst = dt_utc.astimezone(kst)
+    except Exception:
+        return {"error": "Invalid timestamp."}
+
+    kst_start = kst.localize(datetime(dt_kst.year, dt_kst.month, dt_kst.day))
+    kst_end = kst_start + timedelta(days=1)
+
+    utc_start = kst_start.astimezone(pytz.utc)
+    utc_end = kst_end.astimezone(pytz.utc)
     query = text(""" 
         SELECT 
             fx.id,
@@ -95,8 +110,12 @@ def match_up_by_date(date: str, db: Session = Depends(get_db)):
         JOIN teams ht ON fx.home_team_id = ht.id
         JOIN teams at ON fx.away_team_id = at.id
         WHERE fx.season_id = 'b6a1c699-49da-45b9-9edc-b24d80eb9156'
-        AND DATE(fx.kickoff_time) = :date
+        AND fx.kickoff_time >= :start_utc
+        AND fx.kickoff_time < :end_utc
         ORDER BY fx.kickoff_time DESC
     """)
-    result = db.execute(query, {"date": date}).fetchall()
+    result = db.execute(query, {
+        "start_utc": utc_start,
+        "end_utc": utc_end
+    }).fetchall()
     return {"matchUpByDate": [dict_to_camel_case(row._mapping) for row in result]}
