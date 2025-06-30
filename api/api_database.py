@@ -7,7 +7,7 @@ from lib.lib_database import engine
 
 router = APIRouter(prefix="/api/database", tags=["Database"])
 inspector = inspect(engine)
-table_names = inspector.get_table_names()
+table_names = sorted(inspector.get_table_names())
 
 for table_name in table_names:
     route_path = f"/{table_name}"
