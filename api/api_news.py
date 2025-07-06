@@ -26,7 +26,7 @@ def news_list(db: Session = Depends(get_db)):
             n.publish_date
         FROM news_new n
         LEFT JOIN news_team_association nta ON nta.news_id = n.id
-        LEFT JOIN teas_new t ON t.id = nta.team_id
+        LEFT JOIN teams_new t ON t.id = nta.team_id
         GROUP BY 
         n.id, n.title_en, n.title_kr, n.content_en, n.content_kr,
         n.thumbnail_url, n.url, n.author_en, n.author_kr, n.type, n.publish_date
