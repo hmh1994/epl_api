@@ -94,7 +94,7 @@ def player_rank(rank_type: str, db: Session = Depends(get_db)):
             DATE_PART('year', AGE(NOW(), p.birth_date)) AS age
         FROM player_stats_new ps
         JOIN players_new p ON ps.player_id = p.id
-        JOIN teams_new t ON ps.team_id = t.id
+        JOIN teams t ON ps.team_id = t.id
         WHERE ps.season_id = (SELECT id FROM latest_season)
         LIMIT 15
     """)
