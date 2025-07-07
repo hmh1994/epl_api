@@ -39,13 +39,13 @@ RANK_CONFIG = {
         "response_key": "playerAssistRank"
     },
     "goal-keep": {
-        "order_by": "ps.saves DESC",
-        "select_fields": "ps.saves",
+        "order_by": "ps.cleen_sheets DESC",
+        "select_fields": "ps.cleen_sheets",
         "response_key": "playerGoalKeepRank"
     },
     "defend": {
-        "order_by": "ps.clean_sheets DESC",
-        "select_fields": "ps.clean_sheets",
+        "order_by": "ps.saves DESC",
+        "select_fields": "ps.saves",
         "response_key": "playerDefendRank"
     }
 }
