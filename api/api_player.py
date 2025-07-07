@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text 
 from lib.lib_database import get_db
@@ -27,14 +27,91 @@ def player_rank_goal_assist(db: Session = Depends(get_db)):
         "assistRanks": assist_ranks
     }
 
+RANK_CONFIG = {
+    "goal": {
+        "order_by": "ps.goals DESC",
+        "select_fields": "ps.goals",
+        "response_key": "playerGoalRank"
+    },
+    "assist": {
+        "order_by": "ps.assists DESC",
+        "select_fields": "ps.assists",
+        "response_key": "playerAssistRank"
+    },
+    "goal-keep": {
+        "order_by": "ps.saves DESC",
+        "select_fields": "ps.saves",
+        "response_key": "playerGoalKeepRank"
+    },
+    "defend": {
+        "order_by": "ps.clean_sheets DESC",
+        "select_fields": "ps.clean_sheets",
+        "response_key": "playerDefendRank"
+    }
+}
+@router.get("/rank/{rank_type}")
+def player_rank(rank_type: str, db: Session = Depends(get_db)):
+    config = RANK_CONFIG.get(rank_type)
+
+    if not config:
+        raise HTTPException(status_code=400, detail="Invalid rank type")
+
+    order_by = config["order_by"]
+    select_metric = config["select_fields"]
+    response_key = config["response_key"]
+
+    query = text(f"""
+        WITH latest_season AS (
+            SELECT s.id
+            FROM seasons_new s
+            JOIN competitions_new c ON s.competition_id = c.id
+            WHERE c.abbreviation = 'EN_PR'
+            ORDER BY s.date_end DESC
+            LIMIT 1
+        )
+        SELECT 
+            RANK() OVER (ORDER BY {order_by}) AS rank,
+            number AS shirt_number,
+            ps.player_id,	
+            p.display_name_en AS player_name_en,
+            p.display_name_kr AS player_name_kr,
+            p.full_name AS player_full_name,
+            p.photo_url as player_img,
+            p.birth_country_en as country_en,
+            p.birth_country_kr as country_kr,
+            ps.team_id, 
+            t.name_en AS team_name_en,
+            t.name_kr AS team_name_kr, 
+            t.short_name_en AS short_team_name_en,
+            t.short_name_kr AS short_team_name_kr,
+            t.icon_url AS team_icon,
+            ps.appearances,
+            {select_metric},
+            ps.assists,
+            ps.goals,
+            ps.saves,
+            ps.clean_sheets,
+            DATE_PART('year', AGE(NOW(), p.birth_date)) AS age
+        FROM player_stats_new ps
+        JOIN players_new p ON ps.player_id = p.id
+        JOIN teams_new t ON ps.team_id = t.id
+        WHERE ps.season_id = (SELECT id FROM latest_season)
+        LIMIT 15
+    """)
+
+    result = db.execute(query).fetchall()
+
+    return {
+        response_key: [dict_to_camel_case(row._mapping) for row in result]
+    }
 
 @router.get("/rank/goal")
 def player_goal_rank(db: Session = Depends(get_db)):
     query = text("""
 WITH latest_season AS (
     SELECT s.id
-    FROM seasons s
-    JOIN competitions c ON s.competition_id = c.id
+    FROM seasons_new s
+    JOIN competitions_new c ON s.competition_id = c.id
     WHERE c.abbreviation = 'EN_PR'
     ORDER BY s.date_end DESC
     LIMIT 1
@@ -59,9 +136,9 @@ SELECT
 	ps.goals,
     ps.assists,
 	DATE_PART('year', AGE(NOW(), p.birth_date)) AS age
-FROM player_stats ps
-JOIN players p ON ps.player_id = p.id
-JOIN teams t ON ps.team_id = t.id
+FROM player_stats_new ps
+JOIN players_new p ON ps.player_id = p.id
+JOIN teams_new t ON ps.team_id = t.id
 WHERE ps.season_id = (SELECT id FROM latest_season)
 LIMIT 10
     """)
