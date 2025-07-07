@@ -75,23 +75,15 @@ def player_rank(rank_type: str, db: Session = Depends(get_db)):
             ps.player_id,	
             p.display_name_en AS player_name_en,
             p.display_name_kr AS player_name_kr,
-            p.full_name AS player_full_name,
             p.photo_url as player_img,
             p.birth_country_en as country_en,
             p.birth_country_kr as country_kr,
             ps.team_id, 
             t.name_en AS team_name_en,
             t.name_kr AS team_name_kr, 
-            t.short_name_en AS short_team_name_en,
-            t.short_name_kr AS short_team_name_kr,
             t.icon_url AS team_icon,
             ps.appearances,
-            {select_metric},
-            ps.assists,
-            ps.goals,
-            ps.saves,
-            ps.clean_sheets,
-            DATE_PART('year', AGE(NOW(), p.birth_date)) AS age
+            {select_metric}
         FROM player_stats_new ps
         JOIN players_new p ON ps.player_id = p.id
         JOIN teams_new t ON ps.team_id = t.id
