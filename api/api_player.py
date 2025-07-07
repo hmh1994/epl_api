@@ -36,7 +36,6 @@ SELECT
 	t.icon_url AS team_icon,
 	ps.appearances,
 	ps.goals,
-    ps.assists,
 	DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
     'goal' AS category
 FROM player_stats ps
@@ -64,7 +63,6 @@ SELECT
 	t.short_name_kr AS short_team_name_kr,
 	t.icon_url AS team_icon,
 	ps.appearances,
-    ps.goals,
 	ps.assists,
 	DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
     'assist' AS category
