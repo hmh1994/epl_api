@@ -141,9 +141,8 @@ WITH latest_season AS (
 	WHERE p.id = :player_id
 	""")    
     result = db.execute(query, {"player_id": playerId}).fetchone()
-    return {
-        transform_row(result) 
-	}
+    return  transform_row(result) 
+	
 
 def transform_row(row):
     data = dict(row._mapping)
