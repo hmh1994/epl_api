@@ -7,7 +7,7 @@ WITH latest_season AS (
 		LIMIT 1
 	)
 	select
-	p.player_id,
+	p.id as player_id,
 	p.display_name_en as player_name_en,
 	p.display_name_kr as player_name_kr,
 	p.full_name,
@@ -35,4 +35,4 @@ WITH latest_season AS (
 	JOIN latest_season ls ON ps.season_id = ls.id
 	JOIN teams_new t ON ps.team_id = t.id
 	JOIN seasons_new s ON ls.id = s.id
-	WHERE p.player_id = '9cc8acc8-e101-4b34-8f36-42497193b789'
+	WHERE p.id = '9cc8acc8-e101-4b34-8f36-42497193b789'

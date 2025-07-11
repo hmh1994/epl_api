@@ -109,7 +109,7 @@ WITH latest_season AS (
 		LIMIT 1
 	)
 	select
-	p.player_id,
+	p.id as player_id,
 	p.display_name_en as player_name_en,
 	p.display_name_kr as player_name_kr,
 	p.full_name,
@@ -137,7 +137,7 @@ WITH latest_season AS (
 	JOIN latest_season ls ON ps.season_id = ls.id
 	JOIN teams_new t ON ps.team_id = t.id
 	JOIN seasons_new s ON ls.id = s.id
-	WHERE p.player_id = :player_id
+	WHERE p.id =  :player_id
 	""")    
     result = db.execute(query, {"player_id": playerId}).fetchone()
     return  transform_row(result) 
