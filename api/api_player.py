@@ -109,7 +109,7 @@ WITH latest_season AS (
 		LIMIT 1
 	)
 	select
-	p.id,
+	p.player_id,
 	p.display_name_en as player_name_en,
 	p.display_name_kr as player_name_kr,
 	p.full_name,
@@ -124,11 +124,12 @@ WITH latest_season AS (
 	p.birth_country_kr,	
 	p.height,
 	p.weight,
-	p.photo_url as playerImg,
-	t.name_en as team_en,
-	t.name_kr as team_kr,
-	t.short_name_en as short_team_en,
-	t.short_name_kr as short_team_kr,
+	p.photo_url as player_img,
+	t.name_en as team_name_en,
+	t.name_kr as team_name_kr,
+    t.icon_url as team_logo,
+                 
+                 
 	ps.appearances,
 	ps.goals,
 	ps.assists,
