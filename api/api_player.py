@@ -128,8 +128,6 @@ WITH latest_season AS (
 	t.name_en as team_name_en,
 	t.name_kr as team_name_kr,
     t.icon_url as team_logo,
-                 
-                 
 	ps.appearances,
 	ps.goals,
 	ps.assists,
@@ -149,8 +147,7 @@ def transform_row(row):
     data = dict(row._mapping)
 
     season_fields = [
-        "team_en", "team_kr", "short_team_en", "short_team_kr",
-        "appearances", "goals", "assists", "abbreviation"
+        "team_en", "team_kr", "appearances", "goals", "assists", "abbreviation"
     ]
 
     season_stats = {field: data.pop(field) for field in season_fields if field in data}
