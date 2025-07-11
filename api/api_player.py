@@ -137,7 +137,7 @@ WITH latest_season AS (
 	JOIN latest_season ls ON ps.season_id = ls.id
 	JOIN teams_new t ON ps.team_id = t.id
 	JOIN seasons_new s ON ls.id = s.id
-	WHERE p.id = :player_id
+	WHERE p.player_id = :player_id
 	""")    
     result = db.execute(query, {"player_id": playerId}).fetchone()
     return  transform_row(result) 
