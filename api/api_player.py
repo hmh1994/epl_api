@@ -97,6 +97,72 @@ def player_rank(rank_type: str, db: Session = Depends(get_db)):
         response_key: [dict_to_camel_case(row._mapping) for row in result]
     }
 
+@router.get("/{playerId}")
+def defender_rank(playerId: str, db: Session = Depends(get_db)):
+    query = text("""
+WITH latest_season AS (
+		SELECT s.id
+		FROM seasons_new s
+		JOIN competitions_new c ON s.competition_id = c.id
+		WHERE c.abbreviation = 'EN_PR'
+		ORDER BY s.date_end DESC
+		LIMIT 1
+	)
+	select
+	p.id,
+	p.display_name_en as player_name_en,
+	p.display_name_kr as player_name_kr,
+	p.full_name,
+	p.position,
+	p.position_info_en,
+	p.position_info_kr,
+	ps.number AS shirt_number,
+	p.national_team,
+	DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
+	p.birth_date,
+	p.birth_country_en,
+	p.birth_country_kr,	
+	p.height,
+	p.weight,
+	p.photo_url as playerImg,
+	t.name_en as team_en,
+	t.name_kr as team_kr,
+	t.short_name_en as short_team_en,
+	t.short_name_kr as short_team_kr,
+	ps.appearances,
+	ps.goals,
+	ps.assists,
+	s.abbreviation	
+	from players_new p
+	JOIN player_stats_new ps ON p.id = ps.player_id 
+	JOIN latest_season ls ON ps.season_id = ls.id
+	JOIN teams_new t ON ps.team_id = t.id
+	JOIN seasons_new s ON ls.id = s.id
+	WHERE p.id =  :player_id
+	""")    
+    result = db.execute(query, {"player_id": playerId}).fetchone()
+    return {
+        transform_row(result) 
+	}
+
+def transform_row(row):
+    data = dict(row._mapping)
+
+    season_fields = [
+        "team_en", "team_kr", "short_team_en", "short_team_kr",
+        "appearances", "goals", "assists", "abbreviation"
+    ]
+
+    season_stats = {field: data.pop(field) for field in season_fields if field in data}
+
+    base = dict_to_camel_case(data)
+    season_stats_camel = dict_to_camel_case(season_stats)
+
+    base["seasonStats"] = [season_stats_camel]
+
+    return base
+
+'''
 @router.get("/rank/goal")
 def player_goal_rank(db: Session = Depends(get_db)):
     query = text("""
@@ -260,69 +326,4 @@ LIMIT 10
     result = db.execute(query).fetchall()
     return {
         "playerDefendRank": [dict_to_camel_case(row._mapping) for row in result]
-    }
-
-@router.get("/{playerId}")
-def defender_rank(playerId: str, db: Session = Depends(get_db)):
-    query = text("""
-	WITH latest_season AS (
-		SELECT s.id
-		FROM seasons s
-		JOIN competitions c ON s.competition_id = c.id
-		WHERE c.abbreviation = 'EN_PR'
-		ORDER BY s.date_end DESC
-		LIMIT 1
-	)
-	select
-	p.id,
-	p.display_name_en as player_name_en,
-	p.display_name_kr as player_name_kr,
-	p.full_name,
-	p.position,
-	p.position_info_en,
-	p.position_info_kr,
-	ps.number AS shirt_number,
-	p.national_team,
-	DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
-	p.birth_date,
-	p.birth_country_en,
-	p.birth_country_kr,	
-	p.height,
-	p.weight,
-	p.photo_url as playerImg,
-	t.name_en as team_en,
-	t.name_kr as team_kr,
-	t.short_name_en as short_team_en,
-	t.short_name_kr as short_team_kr,
-	ps.appearances,
-	ps.goals,
-	ps.assists,
-	s.abbreviation	
-	from players p
-	JOIN player_stats ps ON p.id = ps.player_id 
-	JOIN latest_season ls ON ps.season_id = ls.id
-	JOIN teams t ON ps.team_id = t.id
-	JOIN seasons s ON ls.id = s.id
-	WHERE p.id = :player_id
-	""")    
-    result = db.execute(query, {"player_id": playerId}).fetchone()
-    return {
-        transform_row(result) 
-	}
-
-def transform_row(row):
-    data = dict(row._mapping)
-
-    season_fields = [
-        "team_en", "team_kr", "short_team_en", "short_team_kr",
-        "appearances", "goals", "assists", "abbreviation"
-    ]
-
-    season_stats = {field: data.pop(field) for field in season_fields if field in data}
-
-    base = dict_to_camel_case(data)
-    season_stats_camel = dict_to_camel_case(season_stats)
-
-    base["seasonStats"] = [season_stats_camel]
-
-    return base
+    }'''
