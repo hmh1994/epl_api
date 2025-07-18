@@ -65,4 +65,4 @@ SELECT
     COALESCE(p.squad, '[]'::json) AS players
 FROM team_with_stats tws
 LEFT JOIN championships c ON c.team_id = tws.id
-LEFT JOIN players p ON p.team_id = tws.id;
+LEFT JOIN players p ON p.team_id = tws.id
