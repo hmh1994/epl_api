@@ -57,12 +57,73 @@ players AS (
     WHERE ps.season_id = (SELECT id FROM latest_season)
       AND ps.team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294'
     GROUP BY ps.team_id
+),
+recent_fixtures AS (
+    SELECT 
+        f.id,
+        f.kickoff_time,
+        f.home_team_id,
+        f.away_team_id,
+        f.home_team_score,
+        f.away_team_score,
+        CASE 
+            WHEN f.home_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294' THEN 'home'
+            ELSE 'away'
+        END AS side
+    FROM fixtures_new f
+    WHERE f.season_id = (SELECT id FROM latest_season)
+      AND (f.home_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294' OR f.away_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294')
+      AND f.kickoff_time < '2025-04-01'::timestamp
+      AND f.home_team_score IS NOT NULL
+      AND f.away_team_score IS NOT NULL
+    ORDER BY f.kickoff_time DESC
+    LIMIT 3
+),
+upcoming_fixtures AS (
+    SELECT 
+        f.id,
+        f.kickoff_time,
+        f.home_team_id,
+        f.away_team_id,
+        f.home_team_score,
+        f.away_team_score,
+        CASE 
+            WHEN f.home_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294' THEN 'home'
+            ELSE 'away'
+        END AS side
+    FROM fixtures_new f
+    WHERE f.season_id = (SELECT id FROM latest_season)
+      AND (f.home_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294' OR f.away_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294')
+      AND f.kickoff_time > '2025-04-01'::timestamp
+    ORDER BY f.kickoff_time
+    LIMIT 3
 )
 
 SELECT 
-    tws.*,
-    COALESCE(c.championship_seasons, ARRAY[]::text[]) AS championships,
-    COALESCE(p.squad, '[]'::json) AS players
+    tws.id,
+    tws.name_en,
+    tws.name_kr,
+    tws.short_name_en,
+    tws.short_name_kr,
+    tws.team_logo,
+    tws.played,
+    tws.won,
+    tws.drawn,
+    tws.lost,
+    tws.gd,
+    tws.points,
+    c.championship_seasons,
+    p.squad,
+    rf.recent_matches,
+    uf.upcoming_matches
 FROM team_with_stats tws
 LEFT JOIN championships c ON c.team_id = tws.id
 LEFT JOIN players p ON p.team_id = tws.id
+LEFT JOIN LATERAL (
+    SELECT JSON_AGG(rf ORDER BY rf.kickoff_time DESC) AS recent_matches
+    FROM recent_fixtures rf
+) rf ON TRUE
+LEFT JOIN LATERAL (
+    SELECT JSON_AGG(uf ORDER BY uf.kickoff_time ASC) AS upcoming_matches
+    FROM upcoming_fixtures uf
+) uf ON TRUE;
