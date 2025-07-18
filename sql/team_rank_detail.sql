@@ -48,7 +48,7 @@ recent_results AS (
 recent_5_results AS (
     SELECT
         team_id,
-        STRING_AGG(result, ',' ORDER BY match_time DESC) AS recent_results
+        ARRAY_AGG(result ORDER BY match_time DESC) AS recent_results
     FROM (
         SELECT
             r.*,
@@ -72,7 +72,7 @@ SELECT
     rt.overall_goals_against,
     rt.overall_goals_difference,
     rt.overall_points,
-    COALESCE(r5.recent_results, '') AS recent_5_results
+    COALESCE(r5.recent_results, ARRAY[]::text[]) AS recent_5_results
 FROM ranked_teams rt
 LEFT JOIN recent_5_results r5 ON rt.team_id = r5.team_id
 ORDER BY rt.rank
