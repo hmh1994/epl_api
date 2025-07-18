@@ -11,7 +11,7 @@ SELECT
         ORDER BY ts.overall_points DESC, ts.overall_goals_difference DESC
     ) AS rank,
     t.name_en,
-    t,name_kr,
+    t.name_kr,
     t.short_name_en,
     t.short_name_kr,
     ts.team_id,
