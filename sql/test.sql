@@ -63,7 +63,11 @@ recent_fixtures AS (
         f.id,
         f.kickoff_time,
         f.home_team_id,
+        ht.name_en AS home_team_name_en,
+        ht.name_kr AS home_team_name_kr,
         f.away_team_id,
+        at.name_en AS away_team_name_en,
+        at.name_kr AS away_team_name_kr,
         f.home_team_score,
         f.away_team_score,
         CASE 
@@ -71,9 +75,11 @@ recent_fixtures AS (
             ELSE 'away'
         END AS side
     FROM fixtures_new f
+    LEFT JOIN teams_new ht ON f.home_team_id = ht.id
+    LEFT JOIN teams_new at ON f.away_team_id = at.id
     WHERE f.season_id = (SELECT id FROM latest_season)
       AND (f.home_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294' OR f.away_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294')
-      AND f.kickoff_time < '2025-04-01'::timestamp
+      AND f.kickoff_time < NOW()
       AND f.home_team_score IS NOT NULL
       AND f.away_team_score IS NOT NULL
     ORDER BY f.kickoff_time DESC
@@ -94,7 +100,7 @@ upcoming_fixtures AS (
     FROM fixtures_new f
     WHERE f.season_id = (SELECT id FROM latest_season)
       AND (f.home_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294' OR f.away_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294')
-      AND f.kickoff_time > '2025-04-01'::timestamp
+      AND f.kickoff_time > NOW()
     ORDER BY f.kickoff_time
     LIMIT 3
 )
@@ -126,4 +132,4 @@ LEFT JOIN LATERAL (
 LEFT JOIN LATERAL (
     SELECT JSON_AGG(uf ORDER BY uf.kickoff_time ASC) AS upcoming_matches
     FROM upcoming_fixtures uf
-) uf ON TRUE;
+) uf ON TRUE
