@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import text 
 from lib.lib_database import get_db
 from lib.lib_camel import dict_to_camel_case
+from lib.lib_camel import dict_to_camel_case_obj
 from lib.lib_sql import load_sql
 
 router = APIRouter(prefix="/api/v1/teams", tags=["Teams"])
@@ -175,5 +176,5 @@ LEFT JOIN LATERAL (
         return {}  
 
     raw_data = dict(result._mapping)
-    camel_data = dict_to_camel_case(raw_data)
+    camel_data = dict_to_camel_case_obj(raw_data)
     return camel_data
