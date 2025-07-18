@@ -169,9 +169,11 @@ LEFT JOIN LATERAL (
 ) uf ON TRUE;
  """
     query = text(sql)
-    result = db.execute(query, {"team_id": team_id}).fetchall()
+    result = db.execute(query, {"team_id": team_id}).fetchone() 
 
-    raw_data = [dict(row._mapping) for row in result]
+    if not result:
+        return {}  
+
+    raw_data = dict(result._mapping)
     camel_data = dict_to_camel_case(raw_data)
-
-    return {"TeamInfo": camel_data}
+    return camel_data
