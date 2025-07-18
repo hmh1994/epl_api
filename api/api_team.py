@@ -13,6 +13,7 @@ def overall_teamrank(db : Session = Depends(get_db)):
     result = db.execute(query).fetchall()
     return {"overallTeamrank" : [dict(row._mapping) for row in result]}
 
+'''
 @router.get("/rank/detail")
 def overall_teamrank_detail(db : Session = Depends(get_db)):
     query = text("""
@@ -140,3 +141,4 @@ def top_points_team(db : Session = Depends(get_db)):
     """)
     result = db.execute(query).fetchall()
     return {"topPointTeam" : [dict(row._mapping) for row in result]}
+    '''
