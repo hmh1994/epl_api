@@ -48,7 +48,7 @@ recent_results AS (
 recent_5_results AS (
     SELECT
         team_id,
-        ARRAY_AGG(result ORDER BY match_time DESC) AS recent_results
+        STRING_AGG(result, ',' ORDER BY match_time DESC) AS recent_results
     FROM (
         SELECT
             r.*,
