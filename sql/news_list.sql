@@ -8,7 +8,7 @@ SELECT
             n.url AS news_url,
             n.author_en,
             n.author_kr,
-            STRING_AGG(t.abbreviation, ', ') AS team,
+            ARRAY_AGG(DISTINCT t.abbreviation) AS team,
             n.type,
             n.publish_date
         FROM news_new n
