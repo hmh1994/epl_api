@@ -2,16 +2,17 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text 
 from lib.lib_database import get_db
+from lib.lib_camel import dict_to_camel_case
 from lib.lib_sql import load_sql
 
 router = APIRouter(prefix="/api/v1/teams", tags=["Teams"])
 
 @router.get("/rank")
-def overall_teamrank(db : Session = Depends(get_db)):
+def teamrank(db : Session = Depends(get_db)):
     sql = load_sql("team_rank.sql")
     query = text(sql)   
     result = db.execute(query).fetchall()
-    return {"overallTeamrank" : [dict(row._mapping) for row in result]}
+    return {"Teamrank" : [dict_to_camel_case(row._mapping) for row in result]}
 
 '''
 @router.get("/rank/detail")
