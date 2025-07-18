@@ -24,7 +24,7 @@ def teamrank_detail(db : Session = Depends(get_db)):
 
 @router.get("/info")
 def teaminfo(db: Session = Depends(get_db)):
-     sql = load_sql("test.sql")
+    sql = load_sql("test.sql")
     query = text(sql)   
     result = db.execute(query).fetchall()
     return {"TeamInfo" : [dict_to_camel_case(row._mapping) for row in result]}
