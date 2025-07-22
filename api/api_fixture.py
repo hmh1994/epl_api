@@ -1,5 +1,6 @@
 from collections import defaultdict
 from fastapi import APIRouter, Depends
+from fastapi import Query
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text 
 from lib.lib_database import get_db
