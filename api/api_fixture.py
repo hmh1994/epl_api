@@ -72,7 +72,7 @@ def match_up_by_date(timestamp: int, db: Session = Depends(get_db)):
     }).fetchall()
     return {"matchUpByDate": [dict_to_camel_case(row._mapping) for row in result]}
 
-@router.get("/range/{startdate}/{enddate}")
+@router.get("/{startdate}/{enddate}")
 def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db)):
     kst = pytz.timezone("Asia/Seoul")
 
