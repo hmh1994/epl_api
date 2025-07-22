@@ -13,7 +13,7 @@ def teamrank(db : Session = Depends(get_db)):
     sql = load_sql("team_rank.sql")
     query = text(sql)   
     result = db.execute(query).fetchall()
-    return {"TeamRank" : [dict_to_camel_case(row._mapping) for row in result]}
+    return {"teamRank" : [dict_to_camel_case(row._mapping) for row in result]}
 
 
 @router.get("/rank/detail")
@@ -21,7 +21,7 @@ def teamrank_detail(db : Session = Depends(get_db)):
     sql = load_sql("team_rank_detail.sql")
     query = text(sql)   
     result = db.execute(query).fetchall()
-    return {"TeamRankDetail" : [dict_to_camel_case(row._mapping) for row in result]}
+    return {"teamRankDetail" : [dict_to_camel_case(row._mapping) for row in result]}
 
 
 
