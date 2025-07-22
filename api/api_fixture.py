@@ -188,4 +188,4 @@ def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db
         date_str = kickoff_dt.date().isoformat()  # "YYYY-MM-DD"
         grouped[date_str].append(match)
 
-    return {"matchUpByRange": grouped}
+    return {grouped}
