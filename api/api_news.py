@@ -9,7 +9,7 @@ from fastapi import Query
 router = APIRouter(prefix="/api/v1/news", tags=["News"])
 
 @router.get("/list")
-def news_list(count: int = Query(..., description="Number of news items to fetch"), db: Session = Depends(get_db)):
+def news_list(count: int = Query(..., description="Integer"), db: Session = Depends(get_db)):
     sql = load_sql("news_list.sql")
     query = text(sql)    
     result = db.execute(query, {"count": count}).fetchall()

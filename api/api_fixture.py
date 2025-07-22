@@ -146,8 +146,8 @@ def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db
 
 @router.get("")
 def match_up_by_range_test(
-    startdate: int = Query(..., description="Start timestamp (unix)"),
-    enddate: int = Query(..., description="End timestamp (unix)"),
+    startdate: int = Query(..., description="Start timestamp"),
+    enddate: int = Query(..., description="End timestamp"),
     db: Session = Depends(get_db)
 ):
     try:
