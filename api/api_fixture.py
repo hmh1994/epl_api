@@ -185,7 +185,7 @@ def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db
         kickoff_dt = match["kickoffTime"]
         if isinstance(kickoff_dt, str):
             kickoff_dt = datetime.fromisoformat(kickoff_dt)
-        date_str = kickoff_dt.date().isoformat()  # "YYYY-MM-DD"
+        date_str = kickoff_dt.date().isoformat()
         grouped[date_str].append(match)
 
-    return {grouped}
+    return dict(grouped)
