@@ -8,7 +8,7 @@ WITH latest_season AS (
 )
 SELECT * FROM (
 SELECT 
-	RANK() OVER (ORDER BY ps.goals DESC, ORDER BY ps.assists DESC) AS rank,
+	RANK() OVER (ORDER BY ps.goals DESC, ps.assists DESC) AS rank,
 	ps.player_id,	
 	p.display_name_en AS player_name_en,
 	p.display_name_kr AS player_name_kr,
@@ -29,7 +29,7 @@ LIMIT 5) as goal_ranks
 UNION ALL
 select * from (
 SELECT 
-	RANK() OVER (ORDER BY ps.assists DESC, ORDER BY ps.goals DESC) AS rank,
+	RANK() OVER (ORDER BY ps.assists DESC, ps.goals DESC) AS rank,
 	ps.player_id,	
 	p.display_name_en AS player_name_en,
 	p.display_name_kr AS player_name_kr,
