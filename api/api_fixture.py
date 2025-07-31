@@ -82,7 +82,16 @@ def match_up_by_date(timestamp: int, db: Session = Depends(get_db)):
         "start_utc": utc_start,
         "end_utc": utc_end
     }).fetchall()
-    return {"matchUpByDate": [dict_to_camel_case(row._mapping) for row in result]}
+    grouped = defaultdict(list)
+    for row in result:
+        match = dict_to_camel_case(row._mapping)
+        kickoff_dt = match["kickoffTime"]
+        if isinstance(kickoff_dt, str):
+            kickoff_dt = datetime.fromisoformat(kickoff_dt)
+        date_str = kickoff_dt.date().isoformat()
+        grouped[date_str].append(match)
+
+    return dict(grouped)
 
 @router.get("/{startdate}/{enddate}")
 def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db)):
