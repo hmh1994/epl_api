@@ -48,11 +48,17 @@ team_with_stats AS (
         ts.overall_matches_drawn AS drawn,
         ts.overall_matches_lost AS lost,
         ts.overall_goals_difference AS gd,
-        ts.overall_points AS points
+        ts.overall_points AS points,
+        g.city_name_en,
+        g.city_name_kr,
+        g.name_en AS ground_name_en,
+        g.name_kr AS ground_name_kr,
     FROM teams_new t
     LEFT JOIN team_stats_new ts
         ON ts.team_id = t.id
        AND ts.season_id = (SELECT id FROM latest_season)
+    LEFT JOIN grounds_new g
+        ON ts.ground_id = g.id
     WHERE t.id = :team_id
 ),
 championships AS (
@@ -153,6 +159,10 @@ SELECT
     tws.lost,
     tws.gd,
     tws.points,
+    tws.city_name_en,
+    tws.city_name_kr,
+    tws.ground_name_en,
+    tws.ground_name_kr,
     c.championship_seasons,
     p.squad,
     rf.recent_matches,
