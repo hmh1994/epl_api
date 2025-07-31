@@ -17,7 +17,8 @@ SELECT
 	t.name_en AS team_name_en,
 	t.name_kr AS team_name_kr, 
 	t.icon_url AS team_icon,
-	ps.goals AS stat,
+	ps.goals AS goal_stat,
+	ps.assists AS assist_stat,
     'goal' AS category
 FROM player_stats_new ps
 JOIN players_new p ON ps.player_id = p.id
@@ -37,7 +38,8 @@ SELECT
 	t.name_en AS team_name_en,
 	t.name_kr AS team_name_kr, 
 	t.icon_url AS team_icon,
-	ps.assists AS stat,
+	ps.goals AS goal_stat,
+	ps.assists AS assist_stat,
     'assist' AS category
 FROM player_stats_new ps
 JOIN players_new p ON ps.player_id = p.id
