@@ -106,6 +106,16 @@ def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db
     except Exception:
         return {"error": "Invalid timestamp."}
 
+    kst = pytz.timezone("Asia/Seoul")
+    dt_start_kst = dt_start_utc.astimezone(kst).date()
+    dt_end_kst = dt_end_utc.astimezone(kst).date()
+
+    date_list = []
+    current = dt_start_kst
+    while current <= dt_end_kst:
+        date_list.append(current.isoformat()) 
+        current += timedelta(days=1)
+
     query = text("""
     WITH latest_season AS (
         SELECT s.id
@@ -154,6 +164,10 @@ def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db
             kickoff_dt = datetime.fromisoformat(kickoff_dt)
         date_str = kickoff_dt.date().isoformat()
         grouped[date_str].append(match)
+
+    for date in date_list:
+        if date not in grouped:
+            grouped[date] = []
 
     return dict(grouped)
 
