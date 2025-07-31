@@ -52,7 +52,8 @@ team_with_stats AS (
         g.city_name_en,
         g.city_name_kr,
         g.name_en AS ground_name_en,
-        g.name_kr AS ground_name_kr
+        g.name_kr AS ground_name_kr,
+        g.capacity AS ground_capacity
     FROM teams_new t
     LEFT JOIN team_stats_new ts
         ON ts.team_id = t.id
@@ -163,6 +164,7 @@ SELECT
     tws.city_name_kr,
     tws.ground_name_en,
     tws.ground_name_kr,
+    tws.ground_capacity,
     c.championship_seasons,
     p.squad,
     rf.recent_matches,
