@@ -111,7 +111,6 @@ def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db
     dt_start_kst = dt_start_utc.astimezone(kst).date()
     dt_end_kst = (dt_end_utc - timedelta(seconds=1)).astimezone(kst).date()
 
-    # 날짜 리스트 생성
     date_list = []
     current = dt_start_kst
     while current <= dt_end_kst:
