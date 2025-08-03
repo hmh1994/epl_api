@@ -71,6 +71,7 @@ def player_rank(rank_type: str, db: Session = Depends(get_db)):
             p.photo_url as player_img,
             p.birth_country_en as country_en,
             p.birth_country_kr as country_kr,
+            DATE_PART('year', AGE(NOW(), p.birth_date)) AS age,
             ps.team_id, 
             t.name_en AS team_name_en,
             t.name_kr AS team_name_kr, 
