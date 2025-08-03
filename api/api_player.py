@@ -31,22 +31,14 @@ RANK_CONFIG = {
     "goal": {
         "order_by": "ps.goals DESC",
         "select_fields": "ps.goals",
+        "select_fields2" : "ps.assists",
         "response_key": "playerGoalRank"
     },
     "assist": {
         "order_by": "ps.assists DESC",
         "select_fields": "ps.assists",
+        "select_fields2": "ps.goals",
         "response_key": "playerAssistRank"
-    },
-    "goal-keep": {
-        "order_by": "ps.saves DESC",
-        "select_fields": "ps.saves",
-        "response_key": "playerGoalKeepRank"
-    },
-    "defend": {
-        "order_by": "ps.tackles DESC",
-        "select_fields": "ps.tackles",
-        "response_key": "playerDefendRank"
     }
 }
 @router.get("/rank/{rank_type}")
@@ -58,6 +50,7 @@ def player_rank(rank_type: str, db: Session = Depends(get_db)):
 
     order_by = config["order_by"]
     select_metric = config["select_fields"]
+    select_metric2 = config["select_fields2"]
     response_key = config["response_key"]
 
     query = text(f"""
@@ -83,7 +76,8 @@ def player_rank(rank_type: str, db: Session = Depends(get_db)):
             t.name_kr AS team_name_kr, 
             t.icon_url AS team_icon,
             ps.appearances,
-            {select_metric}
+            {select_metric},
+            {select_metric2}
         FROM player_stats_new ps
         JOIN players_new p ON ps.player_id = p.id
         JOIN teams_new t ON ps.team_id = t.id
