@@ -17,13 +17,49 @@ def all_match_up(db: Session = Depends(get_db)):
     query = text(sql) 
     result = db.execute(query).fetchall()
 
+    kst = pytz.timezone("Asia/Seoul")
     grouped = defaultdict(list)
+
     for row in result:
-        match = dict_to_camel_case(row._mapping)
-        kickoff_dt = match["kickoffTime"]
-        if isinstance(kickoff_dt, str):
-            kickoff_dt = datetime.fromisoformat(kickoff_dt)
-        date_str = kickoff_dt.date().isoformat()
+        row_dict = row._mapping
+
+        kickoff_time = row_dict["kickoff_time"]
+        if isinstance(kickoff_time, str):
+            kickoff_time = datetime.fromisoformat(kickoff_time)
+        if kickoff_time.tzinfo is None:
+            kickoff_time = kickoff_time.replace(tzinfo=pytz.utc)
+
+        date_str = kickoff_time.astimezone(kst).date().isoformat()
+
+        home = {
+            "id": row_dict["home_team_id"],
+            "nameEn": row_dict["home_team_en"],
+            "nameKr": row_dict["home_team_kr"],
+            "shortNameEn": row_dict["short_home_team_en"],
+            "shortNameKr": row_dict["short_home_team_kr"],
+            "iconUrl": row_dict["home_team_img"],
+            "score": row_dict["home_team_score"],
+        }
+
+        away = {
+            "id": row_dict["away_team_id"],
+            "nameEn": row_dict["away_team_en"],
+            "nameKr": row_dict["away_team_kr"],
+            "shortNameEn": row_dict["short_away_team_en"],
+            "shortNameKr": row_dict["short_away_team_kr"],
+            "iconUrl": row_dict["away_team_img"],
+            "score": row_dict["away_team_score"],
+        }
+
+        match = {
+            "id": row_dict["id"],
+            "kickoffTime": kickoff_time.isoformat(),
+            "groundEn": row_dict["ground_en"],
+            "groundKr": row_dict["ground_kr"],
+            "homeTeam": home,
+            "awayTeam": away
+        }
+
         grouped[date_str].append(match)
 
     return dict(grouped)
@@ -117,8 +153,8 @@ def match_up_by_date(timestamp: int, db: Session = Depends(get_db)):
             "kickoffTime": row_dict["kickoff_time"].isoformat(),
             "groundEn": row_dict["ground_en"],
             "groundKr": row_dict["ground_kr"],
-            "home": homeTeam,
-            "away": awayTeam
+            "homeTeam": homeTeam,
+            "awayTeam": awayTeam
         }
 
         grouped[date_str].append(match)
@@ -197,7 +233,7 @@ def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db
         kickoff_time = row_dict["kickoff_time"]
         date_str = kickoff_time.astimezone(kst).date().isoformat()
 
-        home = {
+        homeTeam = {
             "id": row_dict["home_team_id"],
             "nameEn": row_dict["home_team_en"],
             "nameKr": row_dict["home_team_kr"],
@@ -207,7 +243,7 @@ def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db
             "score": row_dict["home_team_score"],
         }
 
-        away = {
+        awayTeam = {
             "id": row_dict["away_team_id"],
             "nameEn": row_dict["away_team_en"],
             "nameKr": row_dict["away_team_kr"],
@@ -222,8 +258,8 @@ def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db
             "kickoffTime": kickoff_time.isoformat(),
             "groundEn": row_dict["ground_en"],
             "groundKr": row_dict["ground_kr"],
-            "home": homeTeam,
-            "away": awayTeam
+            "homeTeam": homeTeam,
+            "awayTeam": awayTeam
         }
 
         grouped[date_str].append(match)
