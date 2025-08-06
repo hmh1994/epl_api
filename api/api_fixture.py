@@ -71,7 +71,7 @@ def match_up_by_date(timestamp: int, db: Session = Depends(get_db)):
         at.icon_url as away_team_img,    
         fx.away_team_score,
         gn.name_en as ground_en,
-	    gn.name_kr as ground_kr	        
+        gn.name_kr as ground_kr	        
     FROM fixtures_new fx
     JOIN teams_new ht ON fx.home_team_id = ht.id
     JOIN teams_new at ON fx.away_team_id = at.id
@@ -90,10 +90,37 @@ def match_up_by_date(timestamp: int, db: Session = Depends(get_db)):
     date_str = kst_start.date().isoformat() 
 
     for row in result:
-        match = dict_to_camel_case(row._mapping)
-        kickoff_dt = match["kickoffTime"]
-        if isinstance(kickoff_dt, str):
-            kickoff_dt = datetime.fromisoformat(kickoff_dt)
+        row_dict = row._mapping
+
+        home = {
+            "id": row_dict["home_team_id"],
+            "nameEn": row_dict["home_team_en"],
+            "nameKr": row_dict["home_team_kr"],
+            "shortNameEn": row_dict["short_home_team_en"],
+            "shortNameKr": row_dict["short_home_team_kr"],
+            "iconUrl": row_dict["home_team_img"],
+            "score": row_dict["home_team_score"],
+        }
+
+        away = {
+            "id": row_dict["away_team_id"],
+            "nameEn": row_dict["away_team_en"],
+            "nameKr": row_dict["away_team_kr"],
+            "shortNameEn": row_dict["short_away_team_en"],
+            "shortNameKr": row_dict["short_away_team_kr"],
+            "iconUrl": row_dict["away_team_img"],
+            "score": row_dict["away_team_score"],
+        }
+
+        match = {
+            "id": row_dict["id"],
+            "kickoffTime": row_dict["kickoff_time"].isoformat(),
+            "groundEn": row_dict["ground_en"],
+            "groundKr": row_dict["ground_kr"],
+            "home": home,
+            "away": away
+        }
+
         grouped[date_str].append(match)
 
     if date_str not in grouped:
