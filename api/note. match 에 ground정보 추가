@@ -1,0 +1,27 @@
+1. match 에 ground정보 추가
+3. match-detail 에 감독정보 + 포메이션 정보 + 최근 5경기 승패 정보, ground 도시 정보, ground 수용인원, 메인 주심정보, 라인업 (number, name, position(?)), 후보, 
+
+gamestat : { static:{}, timeline: {}}
+경기가 끝났을때는
+교체 , 골, 카드 정보 포함 O
+possession
+shots_total
+shots_on_target
+"fouls_committed": 9,
+pass total
+pass accurate
+gamestat : null
+경기 전에는 
+교체 , 골 , 카드 정보 포함 X
+
+2. match에 hometeam, awayteam 정보를 {} 구분 -- 나중
+-----------------------------------------------------------------------
+3. api/v1/teams/info/7cc98acd-ae02-411b-ad37-35f772b3719f 승패 넣기
+4. Season_stat{} 으로 묶끼  "played": 31,
+  "won": 22,
+  "drawn": 7,
+  "lost": 2,
+  "gd": 42,
+  "points": 73, 
+
+감독추가
