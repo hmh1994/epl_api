@@ -24,7 +24,7 @@ SELECT
 	at.icon_url as away_team_img,	
 	fx.away_team_score,
 	gn.name_en as ground_en,
-	gn.name_kr as ground_kr,	
+	gn.name_kr as ground_kr	
 FROM fixtures_new fx
 JOIN teams_new ht ON fx.home_team_id = ht.id
 JOIN teams_new at ON fx.away_team_id = at.id
