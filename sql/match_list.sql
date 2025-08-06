@@ -22,10 +22,12 @@ SELECT
 	at.short_name_en as short_away_team_en,
 	at.short_name_kr as short_away_team_kr,
 	at.icon_url as away_team_img,	
-	fx.away_team_score		
-	
+	fx.away_team_score,
+	gn.name_en as ground_en,
+	gn.name_kr as ground_kr,	
 FROM fixtures_new fx
 JOIN teams_new ht ON fx.home_team_id = ht.id
 JOIN teams_new at ON fx.away_team_id = at.id
+JOIN grounds_new gn ON fx.ground_id = gn.id
 WHERE fx.season_id = (SELECT id FROM latest_season)
 ORDER BY fx.kickoff_time DESC
