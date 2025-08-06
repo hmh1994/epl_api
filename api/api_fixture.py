@@ -92,7 +92,7 @@ def match_up_by_date(timestamp: int, db: Session = Depends(get_db)):
     for row in result:
         row_dict = row._mapping
 
-        home = {
+        homeTeam = {
             "id": row_dict["home_team_id"],
             "nameEn": row_dict["home_team_en"],
             "nameKr": row_dict["home_team_kr"],
@@ -102,7 +102,7 @@ def match_up_by_date(timestamp: int, db: Session = Depends(get_db)):
             "score": row_dict["home_team_score"],
         }
 
-        away = {
+        awayTeam = {
             "id": row_dict["away_team_id"],
             "nameEn": row_dict["away_team_en"],
             "nameKr": row_dict["away_team_kr"],
@@ -133,7 +133,6 @@ def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db
     try:
         dt_start_utc = datetime.utcfromtimestamp(startdate).replace(tzinfo=pytz.utc)
         dt_end_utc = datetime.utcfromtimestamp(enddate).replace(tzinfo=pytz.utc) + timedelta(days=1)
-
     except Exception:
         return {"error": "Invalid timestamp."}
 
@@ -174,7 +173,7 @@ def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db
         at.icon_url as away_team_img,    
         fx.away_team_score,
         gn.name_en as ground_en,
-	    gn.name_kr as ground_kr	     
+        gn.name_kr as ground_kr	     
     FROM fixtures_new fx
     JOIN teams_new ht ON fx.home_team_id = ht.id
     JOIN teams_new at ON fx.away_team_id = at.id
@@ -191,12 +190,42 @@ def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db
     }).fetchall()
 
     grouped = defaultdict(list)
+
     for row in result:
-        match = dict_to_camel_case(row._mapping)
-        kickoff_dt = match["kickoffTime"]
-        if isinstance(kickoff_dt, str):
-            kickoff_dt = datetime.fromisoformat(kickoff_dt)
-        date_str = kickoff_dt.date().isoformat()
+        row_dict = row._mapping
+
+        kickoff_time = row_dict["kickoff_time"]
+        date_str = kickoff_time.astimezone(kst).date().isoformat()
+
+        homeTeam = {
+            "id": row_dict["home_team_id"],
+            "nameEn": row_dict["home_team_en"],
+            "nameKr": row_dict["home_team_kr"],
+            "shortNameEn": row_dict["short_home_team_en"],
+            "shortNameKr": row_dict["short_home_team_kr"],
+            "iconUrl": row_dict["home_team_img"],
+            "score": row_dict["home_team_score"],
+        }
+
+        awayTeam = {
+            "id": row_dict["away_team_id"],
+            "nameEn": row_dict["away_team_en"],
+            "nameKr": row_dict["away_team_kr"],
+            "shortNameEn": row_dict["short_away_team_en"],
+            "shortNameKr": row_dict["short_away_team_kr"],
+            "iconUrl": row_dict["away_team_img"],
+            "score": row_dict["away_team_score"],
+        }
+
+        match = {
+            "id": row_dict["id"],
+            "kickoffTime": kickoff_time.isoformat(),
+            "groundEn": row_dict["ground_en"],
+            "groundKr": row_dict["ground_kr"],
+            "home": home,
+            "away": away
+        }
+
         grouped[date_str].append(match)
 
     for date in date_list:
