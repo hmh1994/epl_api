@@ -98,7 +98,6 @@ def match_detail(db: Session = Depends(get_db)):
     LEFT JOIN grounds_new g ON fx.ground_id = g.id
     LEFT JOIN officials_new of ON ma.official_main_referee_id = of.id
 
-    -- 홈 선발 라인업 (플레이어 이름 포함)
     LEFT JOIN LATERAL (
         SELECT JSON_AGG(
             JSON_BUILD_OBJECT(
@@ -115,7 +114,6 @@ def match_detail(db: Session = Depends(get_db)):
         WHERE mht.match_id = ma.id
     ) AS htl ON TRUE
 
-    -- 어웨이 선발 라인업 (플레이어 이름 포함)
     LEFT JOIN LATERAL (
         SELECT JSON_AGG(
             JSON_BUILD_OBJECT(
@@ -132,7 +130,6 @@ def match_detail(db: Session = Depends(get_db)):
         WHERE mat.match_id = ma.id
     ) AS atl ON TRUE
 
-    -- 홈 후보 선수 (플레이어 이름 포함)
     LEFT JOIN LATERAL (
         SELECT JSON_AGG(
             JSON_BUILD_OBJECT(
@@ -147,7 +144,6 @@ def match_detail(db: Session = Depends(get_db)):
         WHERE mhs.match_id = ma.id
     ) AS hts ON TRUE
 
-    -- 어웨이 후보 선수 (플레이어 이름 포함)
     LEFT JOIN LATERAL (
         SELECT JSON_AGG(
             JSON_BUILD_OBJECT(
@@ -162,7 +158,6 @@ def match_detail(db: Session = Depends(get_db)):
         WHERE mas.match_id = ma.id
     ) AS ats ON TRUE
 
-    -- 홈팀 최근 5경기 승무패
     LEFT JOIN LATERAL (
         SELECT JSON_AGG(result ORDER BY kickoff_time DESC) AS home_team_recent_form
         FROM (
@@ -190,7 +185,6 @@ def match_detail(db: Session = Depends(get_db)):
         ) AS recent
     ) AS recent_home ON TRUE
 
-    -- 어웨이팀 최근 5경기 승무패
     LEFT JOIN LATERAL (
         SELECT JSON_AGG(result ORDER BY kickoff_time DESC) AS away_team_recent_form
         FROM (
@@ -227,7 +221,7 @@ def match_detail(db: Session = Depends(get_db)):
         return {"result": None}
     
     return {
-        "result": dict_to_camel_case(result._mapping)
+        "result": dict_to_camel_case_obj(result._mapping)
     }
 
 @router.get("/{timestamp}")
