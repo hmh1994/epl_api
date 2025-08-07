@@ -193,6 +193,13 @@ LEFT JOIN LATERAL (
     if not result:
         return {}  
 
-    raw_data = dict(result._mapping)
+   raw_data = dict(result._mapping)
+
+    season_stat_keys = ["played", "won", "drawn", "lost", "gd", "points"]
+    season_stat = {key: raw_data.pop(key, None) for key in season_stat_keys}
+
     camel_data = dict_to_camel_case_obj(raw_data)
+
+    camel_data["seasonStat"] = dict_to_camel_case_obj(season_stat)
+
     return camel_data
