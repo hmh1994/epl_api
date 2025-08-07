@@ -4,7 +4,15 @@
 1. match 에 ground정보 추가 -- 완료
 2. match에 hometeam, awayteam 정보를 {} 구분 -- 나중 -- 완료
 
-3. match-detail 에 감독정보 + 포메이션 정보 + 최근 5경기 승패 정보, ground 도시 정보, ground 수용인원, 메인 주심정보, 라인업 (number, name, position(?)), 후보, 
+3. match-detail
+감독정보 - o
+포메이션 정보 - o
+최근 5경기 승패 정보
+ground 도시 정보 - o
+ground 수용인원 - o
+메인 주심정보 - o
+라인업 (number, name, position(?)), 
+후보, 
 
 gamestat : { static:{}, timeline: {}}
 경기가 끝났을때는
@@ -21,12 +29,6 @@ gamestat : null
 
 
 -----------------------------------------------------------------------
-3. api/v1/teams/info/7cc98acd-ae02-411b-ad37-35f772b3719f 승패 넣기
-4. Season_stat{} 으로 묶끼  "played": 31,
-  "won": 22,
-  "drawn": 7,
-  "lost": 2,
-  "gd": 42,
-  "points": 73, 
-
-감독추가
+4. api/v1/teams/info/7cc98acd-ae02-411b-ad37-35f772b3719f 승패 넣기  -  "result": "lose" 이렇게 추가했는데 원하는 양식이 있는지??
+5. Season_stat{} 으로 묶끼  "played": 31,  "won": 22,  "drawn": 7,  "lost": 2,  "gd": 42,  "points": 73,  -> 완료
+감독추가 -> 팀에 대한 감독이 고정이 아닌데 어떻게하면 좋을까?

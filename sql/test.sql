@@ -1,135 +1,38 @@
-WITH latest_season AS (
-    SELECT s.id
-    FROM seasons_new s
-    JOIN competitions_new c ON s.competition_id = c.id
-    WHERE c.abbreviation = 'EN_PR'
-    ORDER BY s.date_end DESC
-    LIMIT 1
-),
-team_with_stats AS (
-    SELECT 
-        t.id,
-        t.name_en,
-        t.name_kr,
-        t.short_name_en,
-        t.short_name_kr,
-        t.icon_url AS team_logo,
-        ts.overall_matches AS played,
-        ts.overall_matches_won AS won,
-        ts.overall_matches_drawn AS drawn,
-        ts.overall_matches_lost AS lost,
-        ts.overall_goals_difference AS gd,
-        ts.overall_points AS points
-    FROM teams_new t
-    LEFT JOIN team_stats_new ts
-        ON ts.team_id = t.id
-       AND ts.season_id = (SELECT id FROM latest_season)
-    WHERE t.id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294'
-),
-championships AS (
-    SELECT 
-        tca.team_id,
-        ARRAY_AGG(s.abbreviation ORDER BY s.date_end) AS championship_seasons
-    FROM team_championship_association tca
-    JOIN seasons_new s ON s.id = tca.season_id
-    GROUP BY tca.team_id
-),
-players AS (
-    SELECT 
-        ps.team_id,
-        JSON_AGG(
-            JSON_BUILD_OBJECT(
-                'player_id', ps.player_id,
-                'number', ps.number,
-                'display_name_en', p.display_name_en,
-                'display_name_kr', p.display_name_kr,
-                'position', p.position,
-                'national_team', p.national_team,
-                'age', DATE_PART('year', AGE(NOW(), p.birth_date)),
-                'birth_country_en', p.birth_country_en,
-                'birth_country_flag_icon_url', p.birth_country_flag_icon_url,
-                'photo_url', p.photo_url
-            )
-            ORDER BY ps.number
-        ) AS squad
-    FROM player_stats_new ps
-    JOIN players_new p ON ps.player_id = p.id
-    WHERE ps.season_id = (SELECT id FROM latest_season)
-      AND ps.team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294'
-    GROUP BY ps.team_id
-),
-recent_fixtures AS (
-    SELECT 
-        f.id,
-        f.kickoff_time,
-        f.home_team_id,
-        ht.name_en AS home_team_name_en,
-        ht.name_kr AS home_team_name_kr,
-        f.away_team_id,
-        at.name_en AS away_team_name_en,
-        at.name_kr AS away_team_name_kr,
-        f.home_team_score,
-        f.away_team_score,
-        CASE 
-            WHEN f.home_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294' THEN 'home'
-            ELSE 'away'
-        END AS side
-    FROM fixtures_new f
-    LEFT JOIN teams_new ht ON f.home_team_id = ht.id
-    LEFT JOIN teams_new at ON f.away_team_id = at.id
-    WHERE f.season_id = (SELECT id FROM latest_season)
-      AND (f.home_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294' OR f.away_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294')
-      AND f.kickoff_time < NOW()
-      AND f.home_team_score IS NOT NULL
-      AND f.away_team_score IS NOT NULL
-    ORDER BY f.kickoff_time DESC
-    LIMIT 3
-),
-upcoming_fixtures AS (
-    SELECT 
-        f.id,
-        f.kickoff_time,
-        f.home_team_id,
-        f.away_team_id,
-        f.home_team_score,
-        f.away_team_score,
-        CASE 
-            WHEN f.home_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294' THEN 'home'
-            ELSE 'away'
-        END AS side
-    FROM fixtures_new f
-    WHERE f.season_id = (SELECT id FROM latest_season)
-      AND (f.home_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294' OR f.away_team_id = 'd7dbc5ae-ee12-46ee-80d7-4b95e49c7294')
-      AND f.kickoff_time > NOW()
-    ORDER BY f.kickoff_time
-    LIMIT 3
-)
-
 SELECT 
-    tws.id,
-    tws.name_en,
-    tws.name_kr,
-    tws.short_name_en,
-    tws.short_name_kr,
-    tws.team_logo,
-    tws.played,
-    tws.won,
-    tws.drawn,
-    tws.lost,
-    tws.gd,
-    tws.points,
-    c.championship_seasons,
-    p.squad,
-    rf.recent_matches,
-    uf.upcoming_matches
-FROM team_with_stats tws
-LEFT JOIN championships c ON c.team_id = tws.id
-LEFT JOIN players p ON p.team_id = tws.id
+    fx.id, 
+    g.name_en AS ground_name_en,
+    g.name_kr AS ground_name_kr,
+    g.city_name_en,
+    g.city_name_kr,
+    g.capacity,
+    fx.kickoff_time,
+    of.display_name_en AS official_name_en,
+    of.display_name_kr AS official_name_kr,
+    fx.home_team_id,
+    s1.display_name_en AS home_team_manager_en,
+    s1.display_name_kr AS home_team_manager_kr,
+    ma.home_team_formation,
+    fx.away_team_id,
+    s2.display_name_en AS away_team_manager_en,
+    s2.display_name_kr AS away_team_manager_kr,
+    ma.away_team_formation,
+    htl.home_lineup
+FROM fixtures_new fx
+JOIN matches_new ma ON fx.id = ma.fixture_id
+LEFT JOIN staffs_new s1 ON ma.home_team_manager = s1.id
+LEFT JOIN staffs_new s2 ON ma.away_team_manager = s2.id
+LEFT JOIN grounds_new g ON fx.ground_id = g.id
+LEFT JOIN officials_new of ON ma.official_main_referee_id = of.id
 LEFT JOIN LATERAL (
-    SELECT JSON_AGG(rf ORDER BY rf.kickoff_time DESC) AS recent_matches
-    FROM recent_fixtures rf
-) rf ON TRUE
-LEFT JOIN LATERAL (
-    SELECT JSON_AGG(uf ORDER BY uf.kickoff_time ASC) AS upcoming_matches
-    FROM upcoming_fixtures uf
-) uf ON TRUE
+    SELECT JSON_AGG(
+        JSON_BUILD_OBJECT(
+            'player_id', mht.player_id,
+            'shirt_number', mht.shirt_number,
+            'row', mht.row,
+            'column', mht.column
+        ) ORDER BY mht.shirt_number
+    ) AS home_lineup
+    FROM match_home_team_lineup_association mht
+    WHERE mht.match_id = ma.id
+) AS htl ON TRUE
+WHERE fx.id = '33e09323-9d46-45e1-a734-1b2bb968afb3';
