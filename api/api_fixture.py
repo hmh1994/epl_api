@@ -98,125 +98,125 @@ def match_detail(db: Session = Depends(get_db)):
     LEFT JOIN grounds_new g ON fx.ground_id = g.id
     LEFT JOIN officials_new of ON ma.official_main_referee_id = of.id
 
--- 홈 선발 라인업 (플레이어 이름 포함)
-LEFT JOIN LATERAL (
-    SELECT JSON_AGG(
-        JSON_BUILD_OBJECT(
-            'player_id', mht.player_id,
-            'shirt_number', mht.shirt_number,
-            'row', mht.row,
-            'column', mht.column,
-            'display_name_en', p.display_name_en,
-            'display_name_kr', p.display_name_kr
-        ) ORDER BY mht.shirt_number
-    ) AS home_lineup
-    FROM match_home_team_lineup_association mht
-    JOIN players_new p ON p.id = mht.player_id
-    WHERE mht.match_id = ma.id
-) AS htl ON TRUE
+    -- 홈 선발 라인업 (플레이어 이름 포함)
+    LEFT JOIN LATERAL (
+        SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+                'player_id', mht.player_id,
+                'shirt_number', mht.shirt_number,
+                'row', mht.row,
+                'column', mht.column,
+                'display_name_en', p.display_name_en,
+                'display_name_kr', p.display_name_kr
+            ) ORDER BY mht.shirt_number
+        ) AS home_lineup
+        FROM match_home_team_lineup_association mht
+        JOIN players_new p ON p.id = mht.player_id
+        WHERE mht.match_id = ma.id
+    ) AS htl ON TRUE
 
--- 어웨이 선발 라인업 (플레이어 이름 포함)
-LEFT JOIN LATERAL (
-    SELECT JSON_AGG(
-        JSON_BUILD_OBJECT(
-            'player_id', mat.player_id,
-            'shirt_number', mat.shirt_number,
-            'row', mat.row,
-            'column', mat.column,
-            'display_name_en', p.display_name_en,
-            'display_name_kr', p.display_name_kr
-        ) ORDER BY mat.shirt_number
-    ) AS away_lineup
-    FROM match_away_team_lineup_association mat
-    JOIN players_new p ON p.id = mat.player_id
-    WHERE mat.match_id = ma.id
-) AS atl ON TRUE
+    -- 어웨이 선발 라인업 (플레이어 이름 포함)
+    LEFT JOIN LATERAL (
+        SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+                'player_id', mat.player_id,
+                'shirt_number', mat.shirt_number,
+                'row', mat.row,
+                'column', mat.column,
+                'display_name_en', p.display_name_en,
+                'display_name_kr', p.display_name_kr
+            ) ORDER BY mat.shirt_number
+        ) AS away_lineup
+        FROM match_away_team_lineup_association mat
+        JOIN players_new p ON p.id = mat.player_id
+        WHERE mat.match_id = ma.id
+    ) AS atl ON TRUE
 
--- 홈 후보 선수 (플레이어 이름 포함)
-LEFT JOIN LATERAL (
-    SELECT JSON_AGG(
-        JSON_BUILD_OBJECT(
-            'player_id', mhs.player_id,
-            'shirt_number', mhs.shirt_number,
-            'display_name_en', p.display_name_en,
-            'display_name_kr', p.display_name_kr
-        ) ORDER BY mhs.shirt_number
-    ) AS home_substitutes
-    FROM match_home_team_substitute_association mhs
-    JOIN players_new p ON p.id = mhs.player_id
-    WHERE mhs.match_id = ma.id
-) AS hts ON TRUE
+    -- 홈 후보 선수 (플레이어 이름 포함)
+    LEFT JOIN LATERAL (
+        SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+                'player_id', mhs.player_id,
+                'shirt_number', mhs.shirt_number,
+                'display_name_en', p.display_name_en,
+                'display_name_kr', p.display_name_kr
+            ) ORDER BY mhs.shirt_number
+        ) AS home_substitutes
+        FROM match_home_team_substitute_association mhs
+        JOIN players_new p ON p.id = mhs.player_id
+        WHERE mhs.match_id = ma.id
+    ) AS hts ON TRUE
 
--- 어웨이 후보 선수 (플레이어 이름 포함)
-LEFT JOIN LATERAL (
-    SELECT JSON_AGG(
-        JSON_BUILD_OBJECT(
-            'player_id', mas.player_id,
-            'shirt_number', mas.shirt_number,
-            'display_name_en', p.display_name_en,
-            'display_name_kr', p.display_name_kr
-        ) ORDER BY mas.shirt_number
-    ) AS away_substitutes
-    FROM match_away_team_substitute_association mas
-    JOIN players_new p ON p.id = mas.player_id
-    WHERE mas.match_id = ma.id
-) AS ats ON TRUE
+    -- 어웨이 후보 선수 (플레이어 이름 포함)
+    LEFT JOIN LATERAL (
+        SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+                'player_id', mas.player_id,
+                'shirt_number', mas.shirt_number,
+                'display_name_en', p.display_name_en,
+                'display_name_kr', p.display_name_kr
+            ) ORDER BY mas.shirt_number
+        ) AS away_substitutes
+        FROM match_away_team_substitute_association mas
+        JOIN players_new p ON p.id = mas.player_id
+        WHERE mas.match_id = ma.id
+    ) AS ats ON TRUE
 
--- 홈팀 최근 5경기 승무패
-LEFT JOIN LATERAL (
-    SELECT JSON_AGG(result ORDER BY f.kickoff_time DESC) AS home_team_recent_form
-    FROM (
-        SELECT 
-            CASE 
-                WHEN f.home_team_id = fx.home_team_id THEN 
-                    CASE 
-                        WHEN f.home_team_score > f.away_team_score THEN 'W'
-                        WHEN f.home_team_score = f.away_team_score THEN 'D'
-                        ELSE 'L'
-                    END
-                WHEN f.away_team_id = fx.home_team_id THEN 
-                    CASE 
-                        WHEN f.away_team_score > f.home_team_score THEN 'W'
-                        WHEN f.away_team_score = f.home_team_score THEN 'D'
-                        ELSE 'L'
-                    END
-            END AS result,
-            f.kickoff_time
-        FROM fixtures_new f
-        WHERE (f.home_team_id = fx.home_team_id OR f.away_team_id = fx.home_team_id)
-          AND f.kickoff_time < fx.kickoff_time
-        ORDER BY f.kickoff_time DESC
-        LIMIT 5
-    ) AS recent
-) AS recent_home ON TRUE
+    -- 홈팀 최근 5경기 승무패
+    LEFT JOIN LATERAL (
+        SELECT JSON_AGG(result ORDER BY kickoff_time DESC) AS home_team_recent_form
+        FROM (
+            SELECT 
+                CASE 
+                    WHEN f.home_team_id = fx.home_team_id THEN 
+                        CASE 
+                            WHEN f.home_team_score > f.away_team_score THEN 'W'
+                            WHEN f.home_team_score = f.away_team_score THEN 'D'
+                            ELSE 'L'
+                        END
+                    WHEN f.away_team_id = fx.home_team_id THEN 
+                        CASE 
+                            WHEN f.away_team_score > f.home_team_score THEN 'W'
+                            WHEN f.away_team_score = f.home_team_score THEN 'D'
+                            ELSE 'L'
+                        END
+                END AS result,
+                f.kickoff_time
+            FROM fixtures_new f
+            WHERE (f.home_team_id = fx.home_team_id OR f.away_team_id = fx.home_team_id)
+              AND f.kickoff_time < fx.kickoff_time
+            ORDER BY f.kickoff_time DESC
+            LIMIT 5
+        ) AS recent
+    ) AS recent_home ON TRUE
 
--- 어웨이팀 최근 5경기 승무패
-LEFT JOIN LATERAL (
-    SELECT JSON_AGG(result ORDER BY f.kickoff_time DESC) AS away_team_recent_form
-    FROM (
-        SELECT 
-            CASE 
-                WHEN f.home_team_id = fx.away_team_id THEN 
-                    CASE 
-                        WHEN f.home_team_score > f.away_team_score THEN 'W'
-                        WHEN f.home_team_score = f.away_team_score THEN 'D'
-                        ELSE 'L'
-                    END
-                WHEN f.away_team_id = fx.away_team_id THEN 
-                    CASE 
-                        WHEN f.away_team_score > f.home_team_score THEN 'W'
-                        WHEN f.away_team_score = f.home_team_score THEN 'D'
-                        ELSE 'L'
-                    END
-            END AS result,
-            f.kickoff_time
-        FROM fixtures_new f
-        WHERE (f.home_team_id = fx.away_team_id OR f.away_team_id = fx.away_team_id)
-          AND f.kickoff_time < fx.kickoff_time
-        ORDER BY f.kickoff_time DESC
-        LIMIT 5
-    ) AS recent
-) AS recent_away ON TRUE
+    -- 어웨이팀 최근 5경기 승무패
+    LEFT JOIN LATERAL (
+        SELECT JSON_AGG(result ORDER BY kickoff_time DESC) AS away_team_recent_form
+        FROM (
+            SELECT 
+                CASE 
+                    WHEN f.home_team_id = fx.away_team_id THEN 
+                        CASE 
+                            WHEN f.home_team_score > f.away_team_score THEN 'W'
+                            WHEN f.home_team_score = f.away_team_score THEN 'D'
+                            ELSE 'L'
+                        END
+                    WHEN f.away_team_id = fx.away_team_id THEN 
+                        CASE 
+                            WHEN f.away_team_score > f.home_team_score THEN 'W'
+                            WHEN f.away_team_score = f.home_team_score THEN 'D'
+                            ELSE 'L'
+                        END
+                END AS result,
+                f.kickoff_time
+            FROM fixtures_new f
+            WHERE (f.home_team_id = fx.away_team_id OR f.away_team_id = fx.away_team_id)
+              AND f.kickoff_time < fx.kickoff_time
+            ORDER BY f.kickoff_time DESC
+            LIMIT 5
+        ) AS recent
+    ) AS recent_away ON TRUE
 
     WHERE fx.id = '33e09323-9d46-45e1-a734-1b2bb968afb3';
     """)
