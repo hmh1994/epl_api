@@ -4,7 +4,7 @@ from fastapi import Query
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text 
 from lib.lib_database import get_db
-from lib.lib_camel import dict_to_camel_case
+from lib.lib_camel import dict_to_camel_case, dict_to_camel_case_obj
 from datetime import datetime, timedelta
 from lib.lib_sql import load_sql
 import pytz
