@@ -131,10 +131,14 @@ def match_detail(db: Session = Depends(get_db)):
         of.display_name_en AS official_name_en,
         of.display_name_kr AS official_name_kr,
         fx.home_team_id,
+        ht.name_en AS home_team_name_en,
+        ht.name_kr AS home_team_name_kr,
         s1.display_name_en AS home_team_manager_en,
         s1.display_name_kr AS home_team_manager_kr,
         ma.home_team_formation,
         fx.away_team_id,
+        at.name_en AS away_team_name_en,
+        at.name_kr AS away_team_name_kr,
         s2.display_name_en AS away_team_manager_en,
         s2.display_name_kr AS away_team_manager_kr,
         ma.away_team_formation,
@@ -186,6 +190,8 @@ def match_detail(db: Session = Depends(get_db)):
         ELSE NULL END AS game_stat
     FROM fixtures_new fx
     JOIN matches_new ma ON fx.id = ma.fixture_id
+    LEFT JOIN teams_new ht ON fx.home_team_id = ht.id
+    LEFT JOIN teams_new at ON fx.away_team_id = at.id
     LEFT JOIN staffs_new s1 ON ma.home_team_manager = s1.id
     LEFT JOIN staffs_new s2 ON ma.away_team_manager = s2.id
     LEFT JOIN grounds_new g ON fx.ground_id = g.id
