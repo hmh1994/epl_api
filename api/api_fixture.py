@@ -113,7 +113,7 @@ def match_detail(db: Session = Depends(get_db)):
         return {"result": None}
     
     return {
-        "result": dict_to_camel_case_obj(result._mapping)
+        "result": dict_to_camel_case(result._mapping)
     }
 
 
