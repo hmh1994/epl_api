@@ -11,8 +11,8 @@
 ground 도시 정보 - o
 ground 수용인원 - o
 메인 주심정보 - o
-라인업 (number, name, position(?)), 
-후보, 
+라인업 (number, name, position(?)), - o
+후보, - o
 
 gamestat : { static:{}, timeline: {}}
 경기가 끝났을때는
