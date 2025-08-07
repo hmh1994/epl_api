@@ -96,57 +96,69 @@ def match_detail(db: Session = Depends(get_db)):
     LEFT JOIN grounds_new g ON fx.ground_id = g.id
     LEFT JOIN officials_new of ON ma.official_main_referee_id = of.id
 
-    -- 홈 선발 라인업
-    LEFT JOIN LATERAL (
-        SELECT JSON_AGG(
-            JSON_BUILD_OBJECT(
-                'player_id', mht.player_id,
-                'shirt_number', mht.shirt_number,
-                'row', mht.row,
-                'column', mht.column
-            ) ORDER BY mht.shirt_number
-        ) AS home_lineup
-        FROM match_home_team_lineup_association mht
-        WHERE mht.match_id = ma.id
-    ) AS htl ON TRUE
+-- 홈 선발 라인업 (플레이어 이름 포함)
+LEFT JOIN LATERAL (
+    SELECT JSON_AGG(
+        JSON_BUILD_OBJECT(
+            'player_id', mht.player_id,
+            'shirt_number', mht.shirt_number,
+            'row', mht.row,
+            'column', mht.column,
+            'display_name_en', p.display_name_en,
+            'display_name_kr', p.display_name_kr
+        ) ORDER BY mht.shirt_number
+    ) AS home_lineup
+    FROM match_home_team_lineup_association mht
+    JOIN players_new p ON p.id = mht.player_id
+    WHERE mht.match_id = ma.id
+) AS htl ON TRUE
 
-    -- 어웨이 선발 라인업
-    LEFT JOIN LATERAL (
-        SELECT JSON_AGG(
-            JSON_BUILD_OBJECT(
-                'player_id', mat.player_id,
-                'shirt_number', mat.shirt_number,
-                'row', mat.row,
-                'column', mat.column
-            ) ORDER BY mat.shirt_number
-        ) AS away_lineup
-        FROM match_away_team_lineup_association mat
-        WHERE mat.match_id = ma.id
-    ) AS atl ON TRUE
+-- 어웨이 선발 라인업 (플레이어 이름 포함)
+LEFT JOIN LATERAL (
+    SELECT JSON_AGG(
+        JSON_BUILD_OBJECT(
+            'player_id', mat.player_id,
+            'shirt_number', mat.shirt_number,
+            'row', mat.row,
+            'column', mat.column,
+            'display_name_en', p.display_name_en,
+            'display_name_kr', p.display_name_kr
+        ) ORDER BY mat.shirt_number
+    ) AS away_lineup
+    FROM match_away_team_lineup_association mat
+    JOIN players_new p ON p.id = mat.player_id
+    WHERE mat.match_id = ma.id
+) AS atl ON TRUE
 
-    -- 홈 후보 선수
-    LEFT JOIN LATERAL (
-        SELECT JSON_AGG(
-            JSON_BUILD_OBJECT(
-                'player_id', mhs.player_id,
-                'shirt_number', mhs.shirt_number
-            ) ORDER BY mhs.shirt_number
-        ) AS home_substitutes
-        FROM match_home_team_substitute_association mhs
-        WHERE mhs.match_id = ma.id
-    ) AS hts ON TRUE
+-- 홈 후보 선수 (플레이어 이름 포함)
+LEFT JOIN LATERAL (
+    SELECT JSON_AGG(
+        JSON_BUILD_OBJECT(
+            'player_id', mhs.player_id,
+            'shirt_number', mhs.shirt_number,
+            'display_name_en', p.display_name_en,
+            'display_name_kr', p.display_name_kr
+        ) ORDER BY mhs.shirt_number
+    ) AS home_substitutes
+    FROM match_home_team_substitute_association mhs
+    JOIN players_new p ON p.id = mhs.player_id
+    WHERE mhs.match_id = ma.id
+) AS hts ON TRUE
 
-    -- 어웨이 후보 선수
-    LEFT JOIN LATERAL (
-        SELECT JSON_AGG(
-            JSON_BUILD_OBJECT(
-                'player_id', mas.player_id,
-                'shirt_number', mas.shirt_number
-            ) ORDER BY mas.shirt_number
-        ) AS away_substitutes
-        FROM match_away_team_substitute_association mas
-        WHERE mas.match_id = ma.id
-    ) AS ats ON TRUE
+-- 어웨이 후보 선수 (플레이어 이름 포함)
+LEFT JOIN LATERAL (
+    SELECT JSON_AGG(
+        JSON_BUILD_OBJECT(
+            'player_id', mas.player_id,
+            'shirt_number', mas.shirt_number,
+            'display_name_en', p.display_name_en,
+            'display_name_kr', p.display_name_kr
+        ) ORDER BY mas.shirt_number
+    ) AS away_substitutes
+    FROM match_away_team_substitute_association mas
+    JOIN players_new p ON p.id = mas.player_id
+    WHERE mas.match_id = ma.id
+) AS ats ON TRUE
 
     WHERE fx.id = '33e09323-9d46-45e1-a734-1b2bb968afb3';
     """)
