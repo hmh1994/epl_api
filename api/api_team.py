@@ -27,7 +27,8 @@ def teamrank_detail(db : Session = Depends(get_db)):
 
 @router.get("/info/{team_id}")
 def teaminfo(team_id: str, db: Session = Depends(get_db)):
-    sql = """WITH latest_season AS (
+    sql = """
+WITH latest_season AS (
     SELECT s.id
     FROM seasons_new s
     JOIN competitions_new c ON s.competition_id = c.id
@@ -186,20 +187,19 @@ LEFT JOIN LATERAL (
     SELECT JSON_AGG(uf ORDER BY uf.kickoff_time ASC) AS upcoming_matches
     FROM upcoming_fixtures uf
 ) uf ON TRUE;
- """
+"""
     query = text(sql)
-    result = db.execute(query, {"team_id": team_id}).fetchone() 
+    result = db.execute(query, {"team_id": team_id}).fetchone()
 
     if not result:
-        return {}  
+        return {}
 
-   raw_data = dict(result._mapping)
+    raw_data = dict(result._mapping)
 
     season_stat_keys = ["played", "won", "drawn", "lost", "gd", "points"]
     season_stat = {key: raw_data.pop(key, None) for key in season_stat_keys}
 
     camel_data = dict_to_camel_case_obj(raw_data)
-
     camel_data["seasonStat"] = dict_to_camel_case_obj(season_stat)
 
     return camel_data
