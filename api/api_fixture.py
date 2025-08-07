@@ -312,9 +312,9 @@ LEFT JOIN LATERAL (
 ) AS htl ON TRUE
 WHERE fx.id = '33e09323-9d46-45e1-a734-1b2bb968afb3';
     """)    
-    result = db.execute(query).fetchall()
+    result = db.execute(query).fetchone()
     return {
-        "result": [dict_to_camel_case(row._mapping) for row in result]
+        "result": dict_to_camel_case(result._mapping)
     }
 
 
