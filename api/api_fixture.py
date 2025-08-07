@@ -272,7 +272,7 @@ def match_up_by_range(startdate: int, enddate: int, db: Session = Depends(get_db
 
 @router.get("/infotest") #be582b72-34d8-4386-a222-f69d35d52546
 def match_detail(db: Session = Depends(get_db)):
-        sql = load_sql("test.sql")
+    sql = load_sql("test.sql")
     query = text(sql)    
     result = db.execute(query).fetchall()
     return {
