@@ -168,12 +168,18 @@ LEFT JOIN LATERAL (
     FROM (
         SELECT 
             CASE 
-                WHEN f.home_team_id = fx.home_team_id AND f.home_team_score > f.away_team_score THEN 'W'
-                WHEN f.home_team_id = fx.home_team_id AND f.home_team_score = f.away_team_score THEN 'D'
-                WHEN f.home_team_id = fx.home_team_id AND f.home_team_score < f.away_team_score THEN 'L'
-                WHEN f.away_team_id = fx.home_team_id AND f.away_team_score > f.home_team_score THEN 'W'
-                WHEN f.away_team_id = fx.home_team_id AND f.away_team_score = f.home_team_score THEN 'D'
-                WHEN f.away_team_id = fx.home_team_id AND f.away_team_score < f.home_team_score THEN 'L'
+                WHEN f.home_team_id = fx.home_team_id THEN 
+                    CASE 
+                        WHEN f.home_team_score > f.away_team_score THEN 'W'
+                        WHEN f.home_team_score = f.away_team_score THEN 'D'
+                        ELSE 'L'
+                    END
+                WHEN f.away_team_id = fx.home_team_id THEN 
+                    CASE 
+                        WHEN f.away_team_score > f.home_team_score THEN 'W'
+                        WHEN f.away_team_score = f.home_team_score THEN 'D'
+                        ELSE 'L'
+                    END
             END AS result,
             f.kickoff_time
         FROM fixtures_new f
@@ -190,12 +196,18 @@ LEFT JOIN LATERAL (
     FROM (
         SELECT 
             CASE 
-                WHEN f.home_team_id = fx.away_team_id AND f.home_team_score > f.away_team_score THEN 'W'
-                WHEN f.home_team_id = fx.away_team_id AND f.home_team_score = f.away_team_score THEN 'D'
-                WHEN f.home_team_id = fx.away_team_id AND f.home_team_score < f.away_team_score THEN 'L'
-                WHEN f.away_team_id = fx.away_team_id AND f.away_team_score > f.home_team_score THEN 'W'
-                WHEN f.away_team_id = fx.away_team_id AND f.away_team_score = f.home_team_score THEN 'D'
-                WHEN f.away_team_id = fx.away_team_id AND f.away_team_score < f.home_team_score THEN 'L'
+                WHEN f.home_team_id = fx.away_team_id THEN 
+                    CASE 
+                        WHEN f.home_team_score > f.away_team_score THEN 'W'
+                        WHEN f.home_team_score = f.away_team_score THEN 'D'
+                        ELSE 'L'
+                    END
+                WHEN f.away_team_id = fx.away_team_id THEN 
+                    CASE 
+                        WHEN f.away_team_score > f.home_team_score THEN 'W'
+                        WHEN f.away_team_score = f.home_team_score THEN 'D'
+                        ELSE 'L'
+                    END
             END AS result,
             f.kickoff_time
         FROM fixtures_new f
