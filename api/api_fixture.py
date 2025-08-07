@@ -8,6 +8,7 @@ from lib.lib_camel import dict_to_camel_case, dict_to_camel_case_obj
 from datetime import datetime, timedelta
 from lib.lib_sql import load_sql
 import pytz
+import json
 
 router = APIRouter(prefix="/api/v1/match", tags=["Matches"])
 
@@ -219,9 +220,20 @@ def match_detail(db: Session = Depends(get_db)):
 
     if not result:
         return {"result": None}
-    
+
+    data = dict(result._mapping)
+
+    # JSON 문자열로 들어올 수 있는 필드들 파싱 시도
+    for key in ["home_lineup", "away_lineup", "home_substitutes", "away_substitutes"]:
+        val = data.get(key)
+        if val and isinstance(val, str):
+            try:
+                data[key] = json.loads(val)
+            except Exception:
+                pass  # 실패해도 그냥 넘어감
+
     return {
-        "result": dict_to_camel_case_obj(result._mapping)
+        "result": dict_to_camel_case_obj(data)
     }
 
 @router.get("/{timestamp}")
