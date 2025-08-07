@@ -109,7 +109,13 @@ recent_fixtures AS (
         CASE 
             WHEN f.home_team_id = :team_id THEN 'home'
             ELSE 'away'
-        END AS side
+        END AS side,
+        CASE 
+            WHEN f.home_team_id = :team_id AND f.home_team_score > f.away_team_score THEN 'win'
+            WHEN f.away_team_id = :team_id AND f.away_team_score > f.home_team_score THEN 'win'
+            WHEN f.home_team_score = f.away_team_score THEN 'draw'
+            ELSE 'lose'
+        END AS result
     FROM fixtures_new f
     LEFT JOIN teams_new ht ON f.home_team_id = ht.id
     LEFT JOIN teams_new at ON f.away_team_id = at.id
