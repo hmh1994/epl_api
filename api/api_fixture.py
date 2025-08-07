@@ -88,7 +88,9 @@ def match_detail(db: Session = Depends(get_db)):
         htl.home_lineup,
         atl.away_lineup,
         hts.home_substitutes,
-        ats.away_substitutes
+        ats.away_substitutes,
+        recent_home.home_team_recent_form,
+        recent_away.away_team_recent_form
     FROM fixtures_new fx
     JOIN matches_new ma ON fx.id = ma.fixture_id
     LEFT JOIN staffs_new s1 ON ma.home_team_manager = s1.id
@@ -159,6 +161,50 @@ LEFT JOIN LATERAL (
     JOIN players_new p ON p.id = mas.player_id
     WHERE mas.match_id = ma.id
 ) AS ats ON TRUE
+
+-- 홈팀 최근 5경기 승무패
+LEFT JOIN LATERAL (
+    SELECT JSON_AGG(result ORDER BY f.kickoff_time DESC) AS home_team_recent_form
+    FROM (
+        SELECT 
+            CASE 
+                WHEN f.home_team_id = fx.home_team_id AND f.home_team_score > f.away_team_score THEN 'W'
+                WHEN f.home_team_id = fx.home_team_id AND f.home_team_score = f.away_team_score THEN 'D'
+                WHEN f.home_team_id = fx.home_team_id AND f.home_team_score < f.away_team_score THEN 'L'
+                WHEN f.away_team_id = fx.home_team_id AND f.away_team_score > f.home_team_score THEN 'W'
+                WHEN f.away_team_id = fx.home_team_id AND f.away_team_score = f.home_team_score THEN 'D'
+                WHEN f.away_team_id = fx.home_team_id AND f.away_team_score < f.home_team_score THEN 'L'
+            END AS result,
+            f.kickoff_time
+        FROM fixtures_new f
+        WHERE (f.home_team_id = fx.home_team_id OR f.away_team_id = fx.home_team_id)
+          AND f.kickoff_time < fx.kickoff_time
+        ORDER BY f.kickoff_time DESC
+        LIMIT 5
+    ) AS recent
+) AS recent_home ON TRUE
+
+-- 어웨이팀 최근 5경기 승무패
+LEFT JOIN LATERAL (
+    SELECT JSON_AGG(result ORDER BY f.kickoff_time DESC) AS away_team_recent_form
+    FROM (
+        SELECT 
+            CASE 
+                WHEN f.home_team_id = fx.away_team_id AND f.home_team_score > f.away_team_score THEN 'W'
+                WHEN f.home_team_id = fx.away_team_id AND f.home_team_score = f.away_team_score THEN 'D'
+                WHEN f.home_team_id = fx.away_team_id AND f.home_team_score < f.away_team_score THEN 'L'
+                WHEN f.away_team_id = fx.away_team_id AND f.away_team_score > f.home_team_score THEN 'W'
+                WHEN f.away_team_id = fx.away_team_id AND f.away_team_score = f.home_team_score THEN 'D'
+                WHEN f.away_team_id = fx.away_team_id AND f.away_team_score < f.home_team_score THEN 'L'
+            END AS result,
+            f.kickoff_time
+        FROM fixtures_new f
+        WHERE (f.home_team_id = fx.away_team_id OR f.away_team_id = fx.away_team_id)
+          AND f.kickoff_time < fx.kickoff_time
+        ORDER BY f.kickoff_time DESC
+        LIMIT 5
+    ) AS recent
+) AS recent_away ON TRUE
 
     WHERE fx.id = '33e09323-9d46-45e1-a734-1b2bb968afb3';
     """)
