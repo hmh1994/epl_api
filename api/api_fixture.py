@@ -236,6 +236,245 @@ def match_detail(db: Session = Depends(get_db)):
         "result": dict_to_camel_case_obj(data)
     }
 
+@router.get("/infotest2")
+def match_detail(db: Session = Depends(get_db)):
+    query = text("""
+    WITH base AS (
+        SELECT fx.id AS fixture_id, fx.home_team_score, fx.away_team_score, ma.id AS match_id
+        FROM fixtures_new fx
+        JOIN matches_new ma ON fx.id = ma.fixture_id
+        WHERE fx.id = :fixture_id
+    ),
+    static_data AS (
+        SELECT
+            ms.match_id,
+            MAX(ms.possession) AS possession,
+            MAX(ms.shots_total) AS shots_total,
+            MAX(ms.shots_on_target) AS shots_on_target,
+            MAX(ms.fouls_committed) AS fouls_committed,
+            MAX(ms.passes_total) AS passes_total,
+            MAX(ms.passes_accurate) AS passes_accurate
+        FROM match_stats_new ms
+        JOIN base b ON ms.match_id = b.match_id
+        GROUP BY ms.match_id
+    ),
+    goals AS (
+        SELECT 'home' AS team_side, mhg.clock, mhg.player_id, mhg.assist_player_id, mhg.is_penalty, mhg.is_own_goal
+        FROM match_home_team_goal_association mhg
+        JOIN base b ON mhg.match_id = b.match_id
+        UNION ALL
+        SELECT 'away' AS team_side, mag.clock, mag.player_id, mag.assist_player_id, mag.is_penalty, mag.is_own_goal
+        FROM match_away_team_goal_association mag
+        JOIN base b ON mag.match_id = b.match_id
+    ),
+    cards AS (
+        SELECT 'home' AS team_side, mhc.clock, mhc.player_id, mhc.card_type
+        FROM match_home_team_card_association mhc
+        JOIN base b ON mhc.match_id = b.match_id
+        UNION ALL
+        SELECT 'away' AS team_side, mac.clock, mac.player_id, mac.card_type
+        FROM match_away_team_card_association mac
+        JOIN base b ON mac.match_id = b.match_id
+    )
+    SELECT 
+        fx.id, 
+        g.name_en AS ground_name_en,
+        g.name_kr AS ground_name_kr,
+        g.city_name_en,
+        g.city_name_kr,
+        g.capacity,
+        fx.kickoff_time,
+        of.display_name_en AS official_name_en,
+        of.display_name_kr AS official_name_kr,
+        fx.home_team_id,
+        s1.display_name_en AS home_team_manager_en,
+        s1.display_name_kr AS home_team_manager_kr,
+        ma.home_team_formation,
+        fx.away_team_id,
+        s2.display_name_en AS away_team_manager_en,
+        s2.display_name_kr AS away_team_manager_kr,
+        ma.away_team_formation,
+        htl.home_lineup,
+        atl.away_lineup,
+        hts.home_substitutes,
+        ats.away_substitutes,
+        recent_home.home_team_recent_form,
+        recent_away.away_team_recent_form,
+        b.home_team_score,
+        b.away_team_score,
+        -- 점수 존재 시 game_stat JSON 생성, 없으면 NULL
+        CASE WHEN b.home_team_score IS NOT NULL AND b.away_team_score IS NOT NULL THEN
+            json_build_object(
+                'static', json_build_object(
+                    'possession', sd.possession,
+                    'shotsTotal', sd.shots_total,
+                    'shotsOnTarget', sd.shots_on_target,
+                    'foulsCommitted', sd.fouls_committed,
+                    'passesTotal', sd.passes_total,
+                    'passesAccurate', sd.passes_accurate
+                ),
+                'timeline', json_build_object(
+                    'goals', (SELECT json_agg(goals ORDER BY clock) FROM goals),
+                    'cards', (SELECT json_agg(cards ORDER BY clock) FROM cards)
+                    -- substitutions 추가하려면 여기에 포함
+                )
+            )
+        ELSE NULL END AS game_stat
+    FROM fixtures_new fx
+    JOIN matches_new ma ON fx.id = ma.fixture_id
+    LEFT JOIN staffs_new s1 ON ma.home_team_manager = s1.id
+    LEFT JOIN staffs_new s2 ON ma.away_team_manager = s2.id
+    LEFT JOIN grounds_new g ON fx.ground_id = g.id
+    LEFT JOIN officials_new of ON ma.official_main_referee_id = of.id
+
+    LEFT JOIN LATERAL (
+        SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+                'player_id', mht.player_id,
+                'shirt_number', mht.shirt_number,
+                'row', mht.row,
+                'column', mht.column,
+                'display_name_en', p.display_name_en,
+                'display_name_kr', p.display_name_kr
+            ) ORDER BY mht.shirt_number
+        ) AS home_lineup
+        FROM match_home_team_lineup_association mht
+        JOIN players_new p ON p.id = mht.player_id
+        WHERE mht.match_id = ma.id
+    ) AS htl ON TRUE
+
+    LEFT JOIN LATERAL (
+        SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+                'player_id', mat.player_id,
+                'shirt_number', mat.shirt_number,
+                'row', mat.row,
+                'column', mat.column,
+                'display_name_en', p.display_name_en,
+                'display_name_kr', p.display_name_kr
+            ) ORDER BY mat.shirt_number
+        ) AS away_lineup
+        FROM match_away_team_lineup_association mat
+        JOIN players_new p ON p.id = mat.player_id
+        WHERE mat.match_id = ma.id
+    ) AS atl ON TRUE
+
+    LEFT JOIN LATERAL (
+        SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+                'player_id', mhs.player_id,
+                'shirt_number', mhs.shirt_number,
+                'display_name_en', p.display_name_en,
+                'display_name_kr', p.display_name_kr
+            ) ORDER BY mhs.shirt_number
+        ) AS home_substitutes
+        FROM match_home_team_substitute_association mhs
+        JOIN players_new p ON p.id = mhs.player_id
+        WHERE mhs.match_id = ma.id
+    ) AS hts ON TRUE
+
+    LEFT JOIN LATERAL (
+        SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+                'player_id', mas.player_id,
+                'shirt_number', mas.shirt_number,
+                'display_name_en', p.display_name_en,
+                'display_name_kr', p.display_name_kr
+            ) ORDER BY mas.shirt_number
+        ) AS away_substitutes
+        FROM match_away_team_substitute_association mas
+        JOIN players_new p ON p.id = mas.player_id
+        WHERE mas.match_id = ma.id
+    ) AS ats ON TRUE
+
+    LEFT JOIN LATERAL (
+        SELECT JSON_AGG(result ORDER BY kickoff_time DESC) AS home_team_recent_form
+        FROM (
+            SELECT 
+                CASE 
+                    WHEN f.home_team_id = fx.home_team_id THEN 
+                        CASE 
+                            WHEN f.home_team_score > f.away_team_score THEN 'W'
+                            WHEN f.home_team_score = f.away_team_score THEN 'D'
+                            ELSE 'L'
+                        END
+                    WHEN f.away_team_id = fx.home_team_id THEN 
+                        CASE 
+                            WHEN f.away_team_score > f.home_team_score THEN 'W'
+                            WHEN f.away_team_score = f.home_team_score THEN 'D'
+                            ELSE 'L'
+                        END
+                END AS result,
+                f.kickoff_time
+            FROM fixtures_new f
+            WHERE (f.home_team_id = fx.home_team_id OR f.away_team_id = fx.home_team_id)
+              AND f.kickoff_time < fx.kickoff_time
+            ORDER BY f.kickoff_time DESC
+            LIMIT 5
+        ) AS recent
+    ) AS recent_home ON TRUE
+
+    LEFT JOIN LATERAL (
+        SELECT JSON_AGG(result ORDER BY kickoff_time DESC) AS away_team_recent_form
+        FROM (
+            SELECT 
+                CASE 
+                    WHEN f.home_team_id = fx.away_team_id THEN 
+                        CASE 
+                            WHEN f.home_team_score > f.away_team_score THEN 'W'
+                            WHEN f.home_team_score = f.away_team_score THEN 'D'
+                            ELSE 'L'
+                        END
+                    WHEN f.away_team_id = fx.away_team_id THEN 
+                        CASE 
+                            WHEN f.away_team_score > f.home_team_score THEN 'W'
+                            WHEN f.away_team_score = f.home_team_score THEN 'D'
+                            ELSE 'L'
+                        END
+                END AS result,
+                f.kickoff_time
+            FROM fixtures_new f
+            WHERE (f.home_team_id = fx.away_team_id OR f.away_team_id = fx.away_team_id)
+              AND f.kickoff_time < fx.kickoff_time
+            ORDER BY f.kickoff_time DESC
+            LIMIT 5
+        ) AS recent
+    ) AS recent_away ON TRUE
+
+    JOIN base b ON b.fixture_id = fx.id
+    LEFT JOIN static_data sd ON sd.match_id = b.match_id
+    LEFT JOIN goals ON true
+    LEFT JOIN cards ON true
+
+    WHERE fx.id = :fixture_id;
+    """)
+
+    fixture_id = "33e09323-9d46-45e1-a734-1b2bb968afb3"  # 실제 fixture_id로 변경 또는 파라미터로 받으세요
+    result = db.execute(query, {"fixture_id": fixture_id}).fetchone()
+
+    if not result:
+        return {"result": None}
+
+    data = dict(result._mapping)
+
+    # JSON 문자열로 들어올 수 있는 필드들 파싱 시도
+    for key in ["home_lineup", "away_lineup", "home_substitutes", "away_substitutes"]:
+        val = data.get(key)
+        if val and isinstance(val, str):
+            try:
+                data[key] = json.loads(val)
+            except Exception:
+                pass  # 실패해도 무시
+
+    # game_stat 필드가 JSON 문자열이면 파싱
+    if data.get("game_stat") and isinstance(data["game_stat"], str):
+        data["game_stat"] = json.loads(data["game_stat"])
+
+    return {
+        "result": dict_to_camel_case_obj(data)
+    }
+
+
 @router.get("/{timestamp}")
 def match_up_by_date(timestamp: int, db: Session = Depends(get_db)):
     kst = pytz.timezone("Asia/Seoul")
