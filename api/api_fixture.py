@@ -839,52 +839,55 @@ def match_detail3(fixture_id: str, db: Session = Depends(get_db)):
         WHERE mas.match_id = ma.id
     ) AS ats ON TRUE
 
-    -- 교체 이벤트에 IN/OUT 선수 shirt_number 추가 반영
     LEFT JOIN LATERAL (
-        SELECT JSON_AGG(
-            JSON_BUILD_OBJECT(
-                'clock', mhsa.clock,
-                'inPlayerDisplayNameEn', pin.display_name_en,
-                'inPlayerDisplayNameKr', pin.display_name_kr,
-                'inPlayerShirtNumber', mhsa.in_shirt_number,
-                'outPlayerDisplayNameEn', pout.display_name_en,
-                'outPlayerDisplayNameKr', pout.display_name_kr,
-                'outPlayerShirtNumber', mhsa.out_shirt_number
-            ) ORDER BY mhsa.clock
-        ) AS home_substitutions
-        FROM (
-            SELECT mhsa.*, mhti.shirt_number AS in_shirt_number, mhto.shirt_number AS out_shirt_number
-            FROM match_home_team_substitution_association mhsa
-            LEFT JOIN match_home_team_substitute_association mhti ON mhsa.in_player_id = mhti.player_id AND mhsa.match_id = mhti.match_id
-            LEFT JOIN match_home_team_substitute_association mhto ON mhsa.out_player_id = mhto.player_id AND mhsa.match_id = mhto.match_id
-            WHERE mhsa.match_id = ma.id
-        ) mhsa
-        JOIN players_new pin ON mhsa.in_player_id = pin.id
-        JOIN players_new pout ON mhsa.out_player_id = pout.id
-    ) AS hsubs ON TRUE
+    SELECT JSON_AGG(
+        JSON_BUILD_OBJECT(
+            'clock', mhsa.clock,
+            'inPlayerDisplayNameEn', pin.display_name_en,
+            'inPlayerDisplayNameKr', pin.display_name_kr,
+            'inPlayerShirtNumber', COALESCE(mhti.shirt_number, mhti_lineup.shirt_number),
+            'outPlayerDisplayNameEn', pout.display_name_en,
+            'outPlayerDisplayNameKr', pout.display_name_kr,
+            'outPlayerShirtNumber', COALESCE(mhto.shirt_number, mhto_lineup.shirt_number)
+        ) ORDER BY mhsa.clock
+    ) AS home_substitutions
+    FROM match_home_team_substitution_association mhsa
+    LEFT JOIN match_home_team_substitute_association mhti 
+        ON mhsa.in_player_id = mhti.player_id AND mhsa.match_id = mhti.match_id
+    LEFT JOIN match_home_team_lineup_association mhti_lineup
+        ON mhsa.in_player_id = mhti_lineup.player_id AND mhsa.match_id = mhti_lineup.match_id
+    LEFT JOIN match_home_team_substitute_association mhto 
+        ON mhsa.out_player_id = mhto.player_id AND mhsa.match_id = mhto.match_id
+    LEFT JOIN match_home_team_lineup_association mhto_lineup
+        ON mhsa.out_player_id = mhto_lineup.player_id AND mhsa.match_id = mhto_lineup.match_id
+    JOIN players_new pin ON mhsa.in_player_id = pin.id
+    JOIN players_new pout ON mhsa.out_player_id = pout.id
+) AS hsubs ON TRUE
 
-    LEFT JOIN LATERAL (
-        SELECT JSON_AGG(
-            JSON_BUILD_OBJECT(
-                'clock', masa.clock,
-                'inPlayerDisplayNameEn', pin.display_name_en,
-                'inPlayerDisplayNameKr', pin.display_name_kr,
-                'inPlayerShirtNumber', masa.in_shirt_number,
-                'outPlayerDisplayNameEn', pout.display_name_en,
-                'outPlayerDisplayNameKr', pout.display_name_kr,
-                'outPlayerShirtNumber', masa.out_shirt_number
-            ) ORDER BY masa.clock
-        ) AS away_substitutions
-        FROM (
-            SELECT masa.*, mati.shirt_number AS in_shirt_number, mato.shirt_number AS out_shirt_number
-            FROM match_away_team_substitution_association masa
-            LEFT JOIN match_away_team_substitute_association mati ON masa.in_player_id = mati.player_id AND masa.match_id = mati.match_id
-            LEFT JOIN match_away_team_substitute_association mato ON masa.out_player_id = mato.player_id AND masa.match_id = mato.match_id
-            WHERE masa.match_id = ma.id
-        ) masa
-        JOIN players_new pin ON masa.in_player_id = pin.id
-        JOIN players_new pout ON masa.out_player_id = pout.id
-    ) AS asubs ON TRUE
+LEFT JOIN LATERAL (
+    SELECT JSON_AGG(
+        JSON_BUILD_OBJECT(
+            'clock', masa.clock,
+            'inPlayerDisplayNameEn', pin.display_name_en,
+            'inPlayerDisplayNameKr', pin.display_name_kr,
+            'inPlayerShirtNumber', COALESCE(mati.shirt_number, mati_lineup.shirt_number),
+            'outPlayerDisplayNameEn', pout.display_name_en,
+            'outPlayerDisplayNameKr', pout.display_name_kr,
+            'outPlayerShirtNumber', COALESCE(mato.shirt_number, mato_lineup.shirt_number)
+        ) ORDER BY masa.clock
+    ) AS away_substitutions
+    FROM match_away_team_substitution_association masa
+    LEFT JOIN match_away_team_substitute_association mati 
+        ON masa.in_player_id = mati.player_id AND masa.match_id = mati.match_id
+    LEFT JOIN match_away_team_lineup_association mati_lineup
+        ON masa.in_player_id = mati_lineup.player_id AND masa.match_id = mati_lineup.match_id
+    LEFT JOIN match_away_team_substitute_association mato 
+        ON masa.out_player_id = mato.player_id AND masa.match_id = mato.match_id
+    LEFT JOIN match_away_team_lineup_association mato_lineup
+        ON masa.out_player_id = mato_lineup.player_id AND masa.match_id = mato_lineup.match_id
+    JOIN players_new pin ON masa.in_player_id = pin.id
+    JOIN players_new pout ON masa.out_player_id = pout.id
+) AS asubs ON TRUE
 
     LEFT JOIN LATERAL (
         SELECT JSON_AGG(result ORDER BY kickoff_time DESC) AS home_team_recent_form
