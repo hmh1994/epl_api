@@ -66,7 +66,7 @@ def all_match_up(db: Session = Depends(get_db)):
     return dict(grouped)
 
 @router.get("/info/{fixture_id}")
-def match_detail2(fixture_id: str, db: Session = Depends(get_db)):
+def match_detail(fixture_id: str, db: Session = Depends(get_db)):
     query = text("""
     WITH base AS (
         SELECT fx.id AS fixture_id, fx.home_team_score, fx.away_team_score, ma.id AS match_id,
@@ -345,8 +345,7 @@ def match_detail2(fixture_id: str, db: Session = Depends(get_db)):
 
     return  dict_to_camel_case_obj(data)
 
-    @router.get("/infotest/{fixture_id}")
-    
+@router.get("/infotest/{fixture_id}")
 def match_detail2(fixture_id: str, db: Session = Depends(get_db)):
     query = text("""
     WITH base AS (
