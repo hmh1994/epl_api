@@ -616,7 +616,7 @@ def match_detail2(fixture_id: str, db: Session = Depends(get_db)):
         data["game_stat"] = json.loads(data["game_stat"])
 
     return {
-        "result": dict_to_camel_case_obj(data)
+        dict_to_camel_case_obj(data)
     }
 @router.get("/{timestamp}")
 def match_up_by_date(timestamp: int, db: Session = Depends(get_db)):
