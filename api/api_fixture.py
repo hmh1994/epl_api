@@ -944,6 +944,65 @@ LEFT JOIN LATERAL (
 
     WHERE fx.id = :fixture_id;
     """)
+    result = db.execute(query, {"fixture_id": fixture_id}).fetchone()
+
+    if not result:
+        return {"result": None}
+
+    data = dict(result._mapping)
+
+    for key in [
+        "home_lineup", "away_lineup",
+        "home_substitutes", "away_substitutes",
+        "home_substitutions", "away_substitutions"
+    ]:
+        val = data.get(key)
+        if val and isinstance(val, str):
+            try:
+                data[key] = json.loads(val)
+            except Exception:
+                pass
+
+    if data.get("game_stat") and isinstance(data["game_stat"], str):
+        try:
+            data["game_stat"] = json.loads(data["game_stat"])
+        except Exception:
+            pass
+
+    # home 관련 키 목록
+    home_keys = [
+        "home_lineup", "home_substitutes", "home_substitutions",
+        "home_team_id", "home_team_logo", "home_team_name_en", "short_home_team_name_en",
+        "home_team_name_kr", "short_home_team_name_kr",
+        "home_team_manager_en", "home_team_manager_kr", "home_team_formation",
+        "home_team_recent_form", "home_team_score"
+    ]
+
+    # away 관련 키 목록
+    away_keys = [
+        "away_lineup", "away_substitutes", "away_substitutions",
+        "away_team_id", "away_team_logo", "away_team_name_en", "short_away_team_name_en",
+        "away_team_name_kr", "short_away_team_name_kr",
+        "away_team_manager_en", "away_team_manager_kr", "away_team_formation",
+        "away_team_recent_form", "away_team_score"
+    ]
+
+    home_team_info = {}
+    away_team_info = {}
+
+    for key in home_keys:
+        if key in data:
+            home_team_info[key] = data.pop(key)
+
+    for key in away_keys:
+        if key in data:
+            away_team_info[key] = data.pop(key)
+
+    data["homeTeamInfo"] = home_team_info
+    data["awayTeamInfo"] = away_team_info
+
+    return dict_to_camel_case_obj(data)
+    '''
 
     result = db.execute(query, {"fixture_id": fixture_id}).fetchone()
 
@@ -971,6 +1030,7 @@ LEFT JOIN LATERAL (
             pass
 
     return dict_to_camel_case_obj(data)
+    '''
 
 
 @router.get("/{timestamp}")
