@@ -346,6 +346,7 @@ def match_detail2(fixture_id: str, db: Session = Depends(get_db)):
     return  dict_to_camel_case_obj(data)
 
     @router.get("/infotest/{fixture_id}")
+    
 def match_detail2(fixture_id: str, db: Session = Depends(get_db)):
     query = text("""
     WITH base AS (
