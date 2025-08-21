@@ -22,23 +22,23 @@ WITH base AS (
     ),
     goals AS (
         SELECT 'home' AS team_side, mhg.clock, p.display_name_en, p.display_name_kr
-        FROM match_home_team_goal_association mhg
+        FROM match_home_team_goal_association_new mhg
         JOIN base b ON mhg.match_id = b.match_id
         JOIN players_new p ON mhg.player_id = p.id
         UNION ALL
         SELECT 'away' AS team_side, mag.clock, p.display_name_en, p.display_name_kr
-        FROM match_away_team_goal_association mag
+        FROM match_away_team_goal_association_new mag
         JOIN base b ON mag.match_id = b.match_id
         JOIN players_new p ON mag.player_id = p.id
     ),
     cards AS (
         SELECT 'home' AS team_side, mhc.clock, p.display_name_en, p.display_name_kr, mhc.card_type
-        FROM match_home_team_card_association mhc
+        FROM match_home_team_card_association_new mhc
         JOIN base b ON mhc.match_id = b.match_id
         JOIN players_new p ON mhc.player_id = p.id
         UNION ALL
         SELECT 'away' AS team_side, mac.clock, p.display_name_en, p.display_name_kr, mac.card_type
-        FROM match_away_team_card_association mac
+        FROM match_away_team_card_association_new mac
         JOIN base b ON mac.match_id = b.match_id
         JOIN players_new p ON mac.player_id = p.id
     )
@@ -141,7 +141,7 @@ WITH base AS (
                 'display_name_kr', p.display_name_kr
             ) ORDER BY mht.shirt_number
         ) AS home_lineup
-        FROM match_home_team_lineup_association mht
+        FROM match_home_team_lineup_association_new mht
         JOIN players_new p ON p.id = mht.player_id
         WHERE mht.match_id = ma.id
     ) AS htl ON TRUE
@@ -157,7 +157,7 @@ WITH base AS (
                 'display_name_kr', p.display_name_kr
             ) ORDER BY mat.shirt_number
         ) AS away_lineup
-        FROM match_away_team_lineup_association mat
+        FROM match_away_team_lineup_association_new mat
         JOIN players_new p ON p.id = mat.player_id
         WHERE mat.match_id = ma.id
     ) AS atl ON TRUE
@@ -171,7 +171,7 @@ WITH base AS (
                 'display_name_kr', p.display_name_kr
             ) ORDER BY mhs.shirt_number
         ) AS home_substitutes
-        FROM match_home_team_substitute_association mhs
+        FROM match_home_team_substitute_association_new mhs
         JOIN players_new p ON p.id = mhs.player_id
         WHERE mhs.match_id = ma.id
     ) AS hts ON TRUE
@@ -185,7 +185,7 @@ WITH base AS (
                 'display_name_kr', p.display_name_kr
             ) ORDER BY mas.shirt_number
         ) AS away_substitutes
-        FROM match_away_team_substitute_association mas
+        FROM match_away_team_substitute_association_new mas
         JOIN players_new p ON p.id = mas.player_id
         WHERE mas.match_id = ma.id
     ) AS ats ON TRUE
@@ -202,14 +202,14 @@ WITH base AS (
             'outPlayerShirtNumber', COALESCE(mhto.shirt_number, mhto_lineup.shirt_number)
         ) ORDER BY mhsa.clock
     ) AS home_substitutions
-    FROM match_home_team_substitution_association mhsa
-    LEFT JOIN match_home_team_substitute_association mhti 
+    FROM match_home_team_substitution_association_new mhsa
+    LEFT JOIN match_home_team_substitute_association_new mhti 
         ON mhsa.in_player_id = mhti.player_id AND mhsa.match_id = mhti.match_id
-    LEFT JOIN match_home_team_lineup_association mhti_lineup
+    LEFT JOIN match_home_team_lineup_association_new mhti_lineup
         ON mhsa.in_player_id = mhti_lineup.player_id AND mhsa.match_id = mhti_lineup.match_id
-    LEFT JOIN match_home_team_substitute_association mhto 
+    LEFT JOIN match_home_team_substitute_association_new mhto 
         ON mhsa.out_player_id = mhto.player_id AND mhsa.match_id = mhto.match_id
-    LEFT JOIN match_home_team_lineup_association mhto_lineup
+    LEFT JOIN match_home_team_lineup_association_new mhto_lineup
         ON mhsa.out_player_id = mhto_lineup.player_id AND mhsa.match_id = mhto_lineup.match_id
     JOIN players_new pin ON mhsa.in_player_id = pin.id
     JOIN players_new pout ON mhsa.out_player_id = pout.id
@@ -227,14 +227,14 @@ LEFT JOIN LATERAL (
             'outPlayerShirtNumber', COALESCE(mato.shirt_number, mato_lineup.shirt_number)
         ) ORDER BY masa.clock
     ) AS away_substitutions
-    FROM match_away_team_substitution_association masa
-    LEFT JOIN match_away_team_substitute_association mati 
+    FROM match_away_team_substitution_association_new masa
+    LEFT JOIN match_away_team_substitute_association_new mati 
         ON masa.in_player_id = mati.player_id AND masa.match_id = mati.match_id
-    LEFT JOIN match_away_team_lineup_association mati_lineup
+    LEFT JOIN match_away_team_lineup_association_new mati_lineup
         ON masa.in_player_id = mati_lineup.player_id AND masa.match_id = mati_lineup.match_id
-    LEFT JOIN match_away_team_substitute_association mato 
+    LEFT JOIN match_away_team_substitute_association_new mato 
         ON masa.out_player_id = mato.player_id AND masa.match_id = mato.match_id
-    LEFT JOIN match_away_team_lineup_association mato_lineup
+    LEFT JOIN match_away_team_lineup_association_new mato_lineup
         ON masa.out_player_id = mato_lineup.player_id AND masa.match_id = mato_lineup.match_id
     JOIN players_new pin ON masa.in_player_id = pin.id
     JOIN players_new pout ON masa.out_player_id = pout.id
