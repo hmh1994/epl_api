@@ -98,10 +98,13 @@ def match_detail(fixture_id: str, db: Session = Depends(get_db)):
     home_subs = data.pop("home_substitutions", None)
     away_subs = data.pop("away_substitutions", None)
 
-    if data.get("game_stat"):
-        if isinstance(data["game_stat"], dict):
-            data["game_stat"]["homeSubstitutions"] = home_subs or []
-            data["game_stat"]["awaySubstitutions"] = away_subs or []
+    if data.get("game_stat") and isinstance(data["game_stat"], dict):
+        timeline = data["game_stat"].get("timeline", {})
+        timeline["substitutions"] = {
+            "home": home_subs,
+            "away": away_subs
+        }
+        data["game_stat"]["timeline"] = timeline
 
     home_keys = [
         "home_lineup", "home_substitutes",
