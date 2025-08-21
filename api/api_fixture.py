@@ -126,11 +126,11 @@ def match_detail(fixture_id: str, db: Session = Depends(get_db)):
         if key in data:
             new_key = key.replace("home_", "")
             home_team_info[new_key] = data.pop(key)
-            #home_team_info[key] = data.pop(key)
 
     for key in away_keys:
         if key in data:
-            away_team_info[key] = data.pop(key)
+            new_key2 = key.replace("away_", "")
+            away_team_info[new_key2] = data.pop(key)
 
     data["homeTeamInfo"] = home_team_info
     data["awayTeamInfo"] = away_team_info
