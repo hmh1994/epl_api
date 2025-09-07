@@ -1,7 +1,7 @@
 WITH latest_season AS (
     SELECT s.id
-    FROM seasons_new s
-    JOIN competitions_new c ON s.competition_id = c.id
+    FROM seasons s
+    JOIN competitions c ON s.competition_id = c.id
     WHERE c.abbreviation = 'EN_PR'
     ORDER BY s.date_end DESC
     LIMIT 1
@@ -19,9 +19,9 @@ SELECT
 	t.icon_url AS team_icon,
 	ps.goals AS stat,
     'goal' AS category
-FROM player_stats_new ps
-JOIN players_new p ON ps.player_id = p.id
-JOIN teams_new t ON ps.team_id = t.id
+FROM player_stats ps
+JOIN players p ON ps.player_id = p.id
+JOIN teams t ON ps.team_id = t.id
 WHERE ps.season_id = (SELECT id FROM latest_season)
 LIMIT 5) as goal_ranks
 
@@ -39,9 +39,9 @@ SELECT
 	t.icon_url AS team_icon,
 	ps.assists AS stat,
     'assist' AS category
-FROM player_stats_new ps
-JOIN players_new p ON ps.player_id = p.id
-JOIN teams_new t ON ps.team_id = t.id
+FROM player_stats ps
+JOIN players p ON ps.player_id = p.id
+JOIN teams t ON ps.team_id = t.id
 WHERE ps.season_id = (SELECT id FROM latest_season)
 LIMIT 5
 ) as assist_ranks
