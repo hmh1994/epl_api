@@ -16,7 +16,7 @@ def get_table_info():
     return tables
 
 
-@router.get("/a")
+@router.get("/columns")
 def get_columns_only():
     tables = get_table_info()
     return {
@@ -24,7 +24,7 @@ def get_columns_only():
         for t, cols in tables.items()
     }
 
-@router.get("/b")
+@router.get("/columns_type")
 def get_columns_with_types():
     tables = get_table_info()
     return {
@@ -32,7 +32,7 @@ def get_columns_with_types():
         for t, cols in tables.items()
     }
 
-@router.get("/c")
+@router.get("/columns_type_null")
 def get_columns_with_types_nullable():
     tables = get_table_info()
     return {
