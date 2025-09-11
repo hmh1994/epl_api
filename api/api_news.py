@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 from lib.lib_database import get_db
 from lib.lib_camel import dict_to_camel_case
+from model.model_news import NewsItem, NewsListResponse
 
 router = APIRouter(prefix="/api/v1/news", tags=["News"])
 
@@ -65,13 +66,26 @@ def get_news_teams(db: Session, news_ids: list[int]):
     return {row.news_id: row.team for row in result}
 
 
-
-@router.get("/list")
+@router.get("/list", response_model=NewsListResponse)
 def news_list(count: int = Query(..., description="Number of news items"), db: Session = Depends(get_db)):
+    # 1. 뉴스 기본 정보 조회
     news_basic = get_news_basic(db, count)
+
+    # 2. 뉴스 ID 리스트 추출
     news_ids = [news["newsId"] for news in news_basic]
+
+    # 3. 뉴스 팀 정보 조회
     teams_map = get_news_teams(db, news_ids)
+
+    # 4. 뉴스별 team 및 author 리스트 변환
     for news in news_basic:
         news["team"] = teams_map.get(news["newsId"], [])
 
-    return {"newsList": news_basic}
+        # authorEn / authorKr가 문자열이면 리스트로 변환
+        if isinstance(news.get("authorEn"), str):
+            news["authorEn"] = [news["authorEn"]]
+        if isinstance(news.get("authorKr"), str):
+            news["authorKr"] = [news["authorKr"]]
+
+    # 5. Pydantic 모델로 반환
+    return NewsListResponse(newsList=news_basic)
