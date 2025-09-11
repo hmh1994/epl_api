@@ -2,8 +2,6 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text 
 from lib.lib_database import get_db
-from lib.lib_camel import dict_to_camel_case
-from lib.lib_sql import load_sql
 from fastapi import Query
 
 router = APIRouter(prefix="/api/v1/news", tags=["News"])
@@ -13,13 +11,13 @@ def news_list(count: int = Query(..., description="Integer"), db: Session = Depe
     query = text(
         """
         SELECT
-            n.id AS news_id,
+            n.id,
             n.title_en,
             n.title_kr,
             n.content_en,
             n.content_kr,
-            n.thumbnail_url AS news_img,
-            n.url AS news_url,
+            n.thumbnail_url,
+            n.url,
             n.author_en,
             n.author_kr,
             ARRAY_AGG(DISTINCT t.abbreviation) AS team,
