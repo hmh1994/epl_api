@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 from lib.lib_database import get_db
-from schemas.schemas_news import NewsBase
+from schemas.news import NewsBase, NewsListResponse
 from typing import List
 
 router = APIRouter(prefix="/api/v1/news", tags=["News"])
 
-@router.get("/list", response_model=dict)
+@router.get("/list", response_model=NewsListResponse)
 def news_list(
     count: int = Query(..., description="Number of news to fetch"),
     db: Session = Depends(get_db)
@@ -41,4 +41,4 @@ def news_list(
     result = db.execute(query, {"count": count}).fetchall()
     news_list = [NewsBase(**row._mapping) for row in result]
 
-    return {"newsList": news_list}
+    return NewsListResponse(news_list=news_list)

@@ -25,3 +25,6 @@ class NewsBase(CamelModel):
     team: List[str] = []
     type: Optional[str] = None
     publish_date: datetime
+
+class NewsListResponse(CamelModel):
+    news_list: List[NewsBase]
