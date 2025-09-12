@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 from lib.lib_database import get_db
-from schemas.news import NewsBase, NewsListResponse
+from schemas.schemas_news import NewsBase, NewsListResponse
 from typing import List
 
 router = APIRouter(prefix="/api/v1/news", tags=["News"])
