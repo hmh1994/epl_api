@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from sqlalchemy.sql import text 
+from sqlalchemy.sql import text
 from lib.lib_database import get_db
-from lib.lib_camel  import dict_to_camel_case
-from fastapi import Query
+from schemas.schemas_news import NewsBase
+from typing import List
 
 router = APIRouter(prefix="/api/v1/news", tags=["News"])
 
-@router.get("/list")
-def news_list(count: int = Query(..., description="Integer"), db: Session = Depends(get_db)):
+@router.get("/list", response_model=dict)
+def news_list(
+    count: int = Query(..., description="Number of news to fetch"),
+    db: Session = Depends(get_db)
+):
     query = text(
         """
         SELECT
@@ -33,8 +36,9 @@ def news_list(count: int = Query(..., description="Integer"), db: Session = Depe
         ORDER BY n.publish_date DESC
         LIMIT :count
         """
-    )    
+    )
+
     result = db.execute(query, {"count": count}).fetchall()
-    return {
-        "newsList": [dict_to_camel_case(row._mapping) for row in result]
-    }
+    news_list = [NewsBase(**row._mapping) for row in result]
+
+    return {"newsList": news_list}
