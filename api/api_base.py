@@ -9,17 +9,19 @@ router = APIRouter(prefix="/api/v1/base", tags=["Base"])
 
 class CompetitionResponse(BaseModel):
     key: str = Field(..., alias="id")          # DB 컬럼 'id'를 JSON에서 'key'로
+    #content_en: str = Field(..., alias="contentEn")
+    #content_ko: str = Field(..., alias="contentKo")
 
-    class Config:
-        orm_mode = True
-        allow_population_by_field_name = True  # alias로도 입력 가능하게
+    model_config = {
+        "from_attributes": True,                # from_orm() 허용
+        "populate_by_name": True                # alias 적용 가능
+    }
 
 @router.get("/competitions", response_model=List[CompetitionResponse])
 def get_competitions(db: Session = Depends(get_db)):
-    sql = "SELECT id FROM competitions"
+    sql = "SELECT * FROM competitions"
     query = text(sql)
     result = db.execute(query).fetchall()
 
-    # Row -> dict -> Pydantic 모델
     competitions = [CompetitionResponse.from_orm(row._mapping) for row in result]
     return competitions
