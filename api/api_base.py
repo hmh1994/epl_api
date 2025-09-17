@@ -5,13 +5,30 @@ from lib.lib_database import get_db
 
 router = APIRouter(prefix="/api/v1/base", tags=["Base"])
 
-@router.get("/competitions")
+class CompetitionResponse(BaseModel):
+    key: str = Field(alias="id")
+    abbr: Optional[str] = Field(alias="abbreviation")
+    nameEn: Optional[str] = Field(alias="name_en")
+    nameKr: Optional[str] = Field(alias="name_kr")
+    descriptionEn: Optional[str] = Field(alias="description_en")
+    descriptionKr: Optional[str] = Field(alias="description_kr")
+    iconUrl: Optional[str] = Field(alias="icon_url")
+    source: Optional[str]
+    sourceId: Optional[str] = Field(alias="source_id")
+    createdAt: Optional[str] = Field(alias="created_at")
+    updatedAt: Optional[str] = Field(alias="updated_at")
+
+    class Config:
+        populate_by_name = True  # alias 변환 허용
+        from_attributes = True   # ORM 객체도 처리 가능
+
+@router.get("/competitions", response_model=List[CompetitionResponse])
 def get_competitions(db: Session = Depends(get_db)):
     sql = """
-        select * from competitions
+        SELECT * FROM competitions
     """
     query = text(sql)
     result = db.execute(query).fetchall()
-    competitions = [dict(row._mapping) for row in result]
-    return {"competitions": competitions}
 
+    competitions = [dict(row._mapping) for row in result]
+    return competitions
