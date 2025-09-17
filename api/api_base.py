@@ -7,6 +7,7 @@ from lib.lib_database import get_db
 
 router = APIRouter(prefix="/api/v1/base", tags=["Base"])
 
+
 class CompetitionResponse(BaseModel):
     key: str = Field(alias="id")
     abbr: Optional[str] = Field(alias="abbreviation")
@@ -21,16 +22,22 @@ class CompetitionResponse(BaseModel):
     updatedAt: Optional[str] = Field(alias="updated_at")
 
     class Config:
-        populate_by_name = True  # alias 변환 허용
-        from_attributes = True   # ORM 객체도 처리 가능
+        populate_by_name = True   # alias 변환 허용
+        from_attributes = True    # ORM 객체도 처리 가능
+        orm_mode = True           # SQLAlchemy ORM 모델도 지원
+
 
 @router.get("/competitions", response_model=List[CompetitionResponse])
 def get_competitions(db: Session = Depends(get_db)):
     sql = """
-        SELECT * FROM competitions
+        SELECT id, abbreviation, name_en, name_kr,
+               description_en, description_kr, icon_url,
+               source, source_id, created_at, updated_at
+        FROM competitions
     """
     query = text(sql)
     result = db.execute(query).fetchall()
 
-    competitions = [dict(row._mapping) for row in result]
+    # Row -> Pydantic 모델 변환 (null 포함)
+    competitions = [CompetitionResponse(**row._mapping) for row in result]
     return competitions
