@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
+from pydantic import BaseModel, Field
+from typing import Optional, List
 from lib.lib_database import get_db
 
 router = APIRouter(prefix="/api/v1/base", tags=["Base"])
