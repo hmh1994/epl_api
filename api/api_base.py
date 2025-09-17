@@ -26,7 +26,7 @@ def get_additional_info(match_id: int, db: Session) -> list[dict]:
     sql = """
     SELECT *
     FROM matches
-    WHERE match_id = :match_id
+    WHERE id = :match_id
     """
     query = db.execute(text(sql), {"match_id": match_id})
     rows = query.fetchall()
