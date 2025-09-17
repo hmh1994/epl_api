@@ -13,10 +13,11 @@ def get_competitions(db: Session = Depends(get_db)):
     return {"competitions": competitions}
 
 
+# DB 컬럼 → API 키 + 타입 매핑
 dp_to_api = {
-    "id": "key",
-    "abbreviation": "abbr",
-    # 필요한 컬럼 추가 가능
+    "id": ("str", int),
+    "abbreviation": ("abbr", str),
+
 }
 
 @router.get("/competitions2")
@@ -27,8 +28,16 @@ def get_competitions(db: Session = Depends(get_db)):
     competitions = []
     for row in query.fetchall():
         row_dict = dict(row._mapping)
-        # 매핑 적용
-        api_row = {dp_to_api.get(k, k): v for k, v in row_dict.items()}
+        api_row = {}
+        for col, value in row_dict.items():
+            if col in dp_to_api:
+                key, typ = dp_to_api[col]
+                try:
+                    api_row[key] = typ(value) if value is not None else None
+                except Exception:
+                    api_row[key] = value  # 변환 실패 시 원래 값 유지
+            else:
+                api_row[col] = value
         competitions.append(api_row)
     
     return {"competitions": competitions}
