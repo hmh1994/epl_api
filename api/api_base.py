@@ -17,10 +17,8 @@ dp_to_api = {
 
 # Pydantic 모델 정의
 class Competition(BaseModel):
-    key: int
+    key: str
     abbr: str
-    name: str
-    season: Optional[int] = None  # None 가능하면 Optional
 
 class CompetitionResponse(BaseModel):
     competitions: List[Competition]
