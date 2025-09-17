@@ -21,6 +21,11 @@ def table_match_stats(db: Session = Depends(get_db)) -> list[dict]:
         extra_data = get_additional_info(match_id, db)
         row["matches"] = extra_data 
 
+    for row in results:
+        team_id = row["team_id"]
+        extra_data2 = get_additional_info2(team_id, db)
+        row["teams"] = extra_data2
+
     return results
 
 def get_additional_info(match_id: str, db: Session) -> list[dict]:
@@ -30,5 +35,16 @@ def get_additional_info(match_id: str, db: Session) -> list[dict]:
     WHERE id = :match_id
     """
     query = db.execute(text(sql), {"match_id": match_id})
+    rows = query.fetchall()
+    return [dict(row._mapping) for row in rows]
+
+
+def get_additional_info2(team_id: str, db: Session) -> list[dict]:
+    sql = """
+    SELECT *
+    FROM teams
+    WHERE id = :team_id
+    """
+    query = db.execute(text(sql), {"team_id": team_id})
     rows = query.fetchall()
     return [dict(row._mapping) for row in rows]
