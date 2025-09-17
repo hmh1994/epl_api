@@ -23,7 +23,7 @@ def get_columns_only():
         t: [col["name"] for col in cols]
         for t, cols in tables.items()
     }
-
+'''
 @router.get("/columns_type")
 def get_columns_with_types():
     tables = get_table_info()
@@ -46,3 +46,4 @@ def get_columns_with_types_nullable():
         ]
         for t, cols in tables.items()
     }
+    '''
