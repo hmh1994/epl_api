@@ -23,7 +23,7 @@ def table_match_stats(db: Session = Depends(get_db)) -> list[dict]:
 
     return results
 
-def get_additional_info(match_id: int, db: Session) -> list[dict]:
+def get_additional_info(match_id: str, db: Session) -> list[dict]:
     sql = """
     SELECT *
     FROM matches
