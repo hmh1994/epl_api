@@ -1,49 +1,25 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy.sql import text
+from sqlalchemy import text
 from pydantic import BaseModel, Field
-from typing import Optional, List
-from datetime import datetime
-from lib.lib_database import get_db
+from typing import List
+from .database import get_db
 
+# Pydantic 모델 정의
+class CompetitionResponse(BaseModel):
+    key: int = Field(..., alias="id")          # DB 컬럼 'id'를 JSON에서 'key'로
+    class Config:
+        orm_mode = True
+        allow_population_by_field_name = True  # alias로도 입력 가능하게
+
+# Router 정의
 router = APIRouter(prefix="/api/v1/base", tags=["Base"])
 
-
-class CompetitionResponse(BaseModel):
-    key: str = Field(alias="id")
-    abbr: Optional[str] = Field(alias="abbreviation")
-    nameEn: Optional[str] = Field(alias="name_en")
-    nameKr: Optional[str] = Field(alias="name_kr")
-    descriptionEn: Optional[str] = Field(alias="description_en")
-    descriptionKr: Optional[str] = Field(alias="description_kr")
-    iconUrl: Optional[str] = Field(alias="icon_url")
-    source: Optional[str]
-    sourceId: Optional[str] = Field(alias="source_id")
-    createdAt: Optional[datetime] = Field(alias="created_at")
-    updatedAt: Optional[datetime] = Field(alias="updated_at")
-
-    model_config = {
-        "populate_by_name": True,   # alias와 속성명 모두 허용
-        "from_attributes": True,    # ORM 객체도 처리 가능
-        "extra": "ignore"           # 정의되지 않은 필드 무시
-    }
-
-
-@router.get(
-    "/competitions",
-    response_model=List[CompetitionResponse],
-    response_model_by_alias=True  # ✅ docs와 JSON 모두 alias 기준
-)
+@router.get("/competitions", response_model=List[CompetitionResponse])
 def get_competitions(db: Session = Depends(get_db)):
-    sql = """
-        SELECT id, abbreviation, name_en, name_kr,
-               description_en, description_kr, icon_url,
-               source, source_id, created_at, updated_at
-        FROM competitions
-    """
+    sql = "SELECT * FROM competitions"
     query = text(sql)
     result = db.execute(query).fetchall()
 
-    # SQLAlchemy Row -> Pydantic 모델 변환
-    competitions = [CompetitionResponse(**row._mapping) for row in result]
+    competitions = [CompetitionResponse.from_orm(row._mapping) for row in result]
     return competitions
