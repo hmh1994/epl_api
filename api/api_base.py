@@ -25,11 +25,11 @@ router = APIRouter(prefix="/api/v1/dataVerify", tags=["Verify"])
 def table_match_stats(db: Session = Depends(get_db)) -> list[dict]:
     sql = """
     SELECT 
-        ms.*,        -- match_stats의 모든 컬럼
-        m.*          -- match 테이블의 모든 컬럼
+        ms.*,        
+        m.*          
     FROM match_stats ms
-    JOIN match m ON ms.match_id = m.id
-    LIMIT 10
+    JOIN matches m ON ms.match_id = m.id
+    LIMIT 1
     """
     query = db.execute(text(sql))
     results = [dict(row._mapping) for row in query.fetchall()]
