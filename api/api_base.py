@@ -11,7 +11,7 @@ def table_match_stats(db: Session = Depends(get_db)) -> list[dict]:
     SELECT 
         *
     FROM match_stats
-    LIMIT 1
+    LIMIT 5
     """
     query = db.execute(text(sql))
     results = [dict(row._mapping) for row in query.fetchall()]
