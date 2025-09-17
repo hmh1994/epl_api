@@ -8,7 +8,7 @@ from lib.lib_database import get_db
 router = APIRouter(prefix="/api/v1/base", tags=["Base"])
 
 class CompetitionResponse(BaseModel):
-    key: int = Field(..., alias="id")          # DB 컬럼 'id'를 JSON에서 'key'로
+    key: str = Field(..., alias="id")          # DB 컬럼 'id'를 JSON에서 'key'로
 
     class Config:
         orm_mode = True
