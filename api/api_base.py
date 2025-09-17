@@ -22,17 +22,17 @@ class CompetitionResponse(BaseModel):
     createdAt: Optional[datetime] = Field(alias="created_at")
     updatedAt: Optional[datetime] = Field(alias="updated_at")
 
-    class Config:
-        populate_by_name = True   # alias 변환 허용
-        from_attributes = True    # ORM 객체도 처리 가능
-        orm_mode = True           # SQLAlchemy ORM 모델 지원
-        extra = "ignore"          # 모델에 정의되지 않은 필드는 무시
+    model_config = {
+        "populate_by_name": True,   # alias와 속성명 모두 허용
+        "from_attributes": True,    # ORM 객체도 처리 가능
+        "extra": "ignore"           # 정의되지 않은 필드 무시
+    }
 
 
 @router.get(
     "/competitions",
     response_model=List[CompetitionResponse],
-    response_model_by_alias=True   # ✅ docs와 응답 JSON에 alias 반영
+    response_model_by_alias=True  # ✅ docs와 JSON 모두 alias 기준
 )
 def get_competitions(db: Session = Depends(get_db)):
     sql = """
@@ -44,6 +44,6 @@ def get_competitions(db: Session = Depends(get_db)):
     query = text(sql)
     result = db.execute(query).fetchall()
 
-    # Row -> Pydantic 모델 변환
+    # SQLAlchemy Row -> Pydantic 모델 변환
     competitions = [CompetitionResponse(**row._mapping) for row in result]
     return competitions
