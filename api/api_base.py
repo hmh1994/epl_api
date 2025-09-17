@@ -1,26 +1,31 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from pydantic import BaseModel
+from typing import List, Optional
 from lib.lib_database import get_db
 
 router = APIRouter(prefix="/api/v1/base", tags=["Base"])
 
-@router.get("/competitions")
-def get_competitions(db: Session = Depends(get_db)):
-    sql = "SELECT * FROM competitions"
-    query = db.execute(text(sql))
-    competitions = [dict(row._mapping) for row in query.fetchall()]
-    return {"competitions": competitions}
-
-
-# DB 컬럼 → API 키 + 타입 매핑
+# DB 컬럼 → API 키 매핑
 dp_to_api = {
-    "id": ("str", int),
-    "abbreviation": ("abbr", str),
-
+    "id": "key",
+    "abbreviation": "abbr",
+    "name": "name",
+    "season": "season",
 }
 
-@router.get("/competitions2")
+# Pydantic 모델 정의
+class Competition(BaseModel):
+    key: int
+    abbr: str
+    name: str
+    season: Optional[int] = None  # None 가능하면 Optional
+
+class CompetitionResponse(BaseModel):
+    competitions: List[Competition]
+
+@router.get("/competitions2", response_model=CompetitionResponse)
 def get_competitions(db: Session = Depends(get_db)):
     sql = "SELECT * FROM competitions"
     query = db.execute(text(sql))
@@ -28,16 +33,7 @@ def get_competitions(db: Session = Depends(get_db)):
     competitions = []
     for row in query.fetchall():
         row_dict = dict(row._mapping)
-        api_row = {}
-        for col, value in row_dict.items():
-            if col in dp_to_api:
-                key, typ = dp_to_api[col]
-                try:
-                    api_row[key] = typ(value) if value is not None else None
-                except Exception:
-                    api_row[key] = value  # 변환 실패 시 원래 값 유지
-            else:
-                api_row[col] = value
+        api_row = {dp_to_api.get(k, k): v for k, v in row_dict.items()}
         competitions.append(api_row)
     
     return {"competitions": competitions}
