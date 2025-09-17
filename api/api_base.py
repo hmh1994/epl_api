@@ -9,36 +9,27 @@ router = APIRouter(prefix="/api/v1/base", tags=["Base"])
 
 # DB 컬럼 → (API 키, 타입)
 dp_to_api = {
-    "id": ("key", int),
+    "id": ("id", str),
     "abbreviation": ("abbr", str),
-    "name": ("name", str),      # DB에 없으면 무시됨
-    "season": ("season", Optional[int]),  # DB에 없으면 무시됨
+    "name_en" : ("nameEn", str),
+    "name_kr" : ("nameKr", str),
+
 }
 
-# DB 컬럼이 실제로 존재하는 컬럼만 Pydantic 모델 필드로 사용
-def create_dynamic_model(row_dict, model_name="DynamicModel"):
-    fields = {
-        dp_to_api[k][0]: (dp_to_api[k][1], ...)
-        for k in row_dict.keys()
-        if k in dp_to_api
-    }
-    return create_model(model_name, **fields)
+fields = {v[0]: (v[1], ...) for v in dp_to_api.values()}
+Competition = create_model("Competition", **fields)
+class CompetitionResponse(BaseModel):
+    competitions: List[Competition]
 
-@router.get("/competitions_dynamic")
+@router.get("/competitions_auto", response_model=CompetitionResponse)
 def get_competitions(db: Session = Depends(get_db)):
-    sql = "SELECT * FROM competitions"
+    sql = "SELECT id, abbreviation,name_en, name_kr FROM competitions"
     query = db.execute(text(sql))
     
     competitions = []
     for row in query.fetchall():
         row_dict = dict(row._mapping)
-        # 실제 존재하는 컬럼만 적용
-        api_row = {dp_to_api[k][0]: v for k, v in row_dict.items() if k in dp_to_api}
+        api_row = {dp_to_api.get(k, (k, Any))[0]: v for k, v in row_dict.items()}
         competitions.append(api_row)
-    
-    # 동적으로 모델 생성 (옵션)
-    if competitions:
-        Competition = create_dynamic_model(competitions[0])
-        CompetitionResponse = create_model("CompetitionResponse", competitions=(List[Competition], ...))
     
     return {"competitions": competitions}
