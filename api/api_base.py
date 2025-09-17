@@ -9,5 +9,5 @@ router = APIRouter(prefix="/api/v1/base", tags=["Base"])
 def get_competitions(db: Session = Depends(get_db)):
     sql = "SELECT * FROM competitions"
     query = db.execute(text(sql))
-    competitions = [dict(row) for row in query.fetchall()]
+    competitions = [dict(row._mapping) for row in query.fetchall()]
     return {"competitions": competitions}
