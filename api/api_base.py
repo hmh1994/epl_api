@@ -9,10 +9,10 @@ router = APIRouter(prefix="/api/v1/base", tags=["Base"])
 
 # DB 컬럼 → (API 키, 타입)
 dp_to_api = {
-    "id": ("key", int),
+    "id": ("key", str),
     "abbreviation": ("abbr", str),
     "name": ("name", str),
-    "season": ("season", Optional[int]),
+    "season": ("season", Optional[str]),
 }
 
 # Pydantic 모델 자동 생성
