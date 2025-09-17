@@ -9,5 +9,5 @@ router = APIRouter(prefix="/api/v1/dataVerify", tags=["Verify"])
 def table_match_stats(db: Session = Depends(get_db)):
     sql = "SELECT * FROM match_stats LIMIT 1"
     query = db.execute(text(sql))
-    return {"match_stats": [dict(row._mapping) for row in query.fetchall()]}
+    return {dict(row._mapping) for row in query.fetchall()}
 
