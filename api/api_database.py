@@ -43,14 +43,14 @@ def verify_players(players_id: str, db: Session = Depends(get_db)) -> dict:
 def verify_staffs(staffs_id: str, db: Session = Depends(get_db)) -> dict:
     sql = """
     SELECT *
-    FROM players
+    FROM staffs
     WHERE id = :staffs_id
     """
     query = db.execute(text(sql), {"staffs_id": staffs_id})
     row = query.fetchone()
 
     if not row:
-        raise HTTPException(status_code=404, detail="Player not found")
+        raise HTTPException(status_code=404, detail="Staffs not found")
 
     return dict(row._mapping)
 
