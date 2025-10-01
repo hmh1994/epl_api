@@ -28,7 +28,7 @@ def get_columns_only():
 def verify_players(players_id: str, db: Session) -> list[dict]:
     sql = """
     SELECT *
-    FROM matches
+    FROM players
     WHERE id = :players_id
     """
     query = db.execute(text(sql), {"players_id": players_id})
