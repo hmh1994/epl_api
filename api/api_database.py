@@ -39,6 +39,22 @@ def verify_players(players_id: str, db: Session = Depends(get_db)) -> dict:
 
     return dict(row._mapping)
 
+@router.get("/verify/staffs/{staffs_id}")
+def verify_staffs(staffs_id: str, db: Session = Depends(get_db)) -> dict:
+    sql = """
+    SELECT *
+    FROM players
+    WHERE id = :staffs_id
+    """
+    query = db.execute(text(sql), {"staffs_id": staffs_id})
+    row = query.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    return dict(row._mapping)
+
+
 
 '''
 @router.get("/columns_type")
