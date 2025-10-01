@@ -25,15 +25,19 @@ def get_columns_only():
     }
 
 @router.get("/verify/players/{players_id}")
-def verify_players(players_id: str, db: Session) -> list[dict]:
+def verify_players(players_id: str, db: Session = Depends(get_db)) -> dict:
     sql = """
     SELECT *
     FROM players
     WHERE id = :players_id
     """
     query = db.execute(text(sql), {"players_id": players_id})
-    rows = query.fetchall()
-    return [dict(row._mapping) for row in rows]
+    row = query.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    return dict(row._mapping)
 
 
 '''
