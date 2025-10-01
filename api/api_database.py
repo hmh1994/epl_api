@@ -23,6 +23,19 @@ def get_columns_only():
         t: [col["name"] for col in cols]
         for t, cols in tables.items()
     }
+
+@router.get("/verify/players/{players_id}")
+def verify_players(players_id: str, db: Session) -> list[dict]:
+    sql = """
+    SELECT *
+    FROM matches
+    WHERE id = :players_id
+    """
+    query = db.execute(text(sql), {"players_id": players_id})
+    rows = query.fetchall()
+    return [dict(row._mapping) for row in rows]
+
+
 '''
 @router.get("/columns_type")
 def get_columns_with_types():
