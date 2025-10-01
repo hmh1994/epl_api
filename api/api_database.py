@@ -54,29 +54,17 @@ def verify_staffs(staffs_id: str, db: Session = Depends(get_db)) -> dict:
 
     return dict(row._mapping)
 
+@router.get("/verify/officials/{officials_id}")
+def verify_officials(officials_id: str, db: Session = Depends(get_db)) -> dict:
+    sql = """
+    SELECT *
+    FROM officials
+    WHERE id = :officials_id
+    """
+    query = db.execute(text(sql), {"officials_id": officials_id})
+    row = query.fetchone()
 
+    if not row:
+        raise HTTPException(status_code=404, detail="Officials not found")
 
-'''
-@router.get("/columns_type")
-def get_columns_with_types():
-    tables = get_table_info()
-    return {
-        t: [{ "name": col["name"], "type": str(col["type"]) } for col in cols]
-        for t, cols in tables.items()
-    }
-
-@router.get("/columns_type_null")
-def get_columns_with_types_nullable():
-    tables = get_table_info()
-    return {
-        t: [
-            {
-                "name": col["name"],
-                "type": str(col["type"]),
-                "nullable": col["nullable"]
-            }
-            for col in cols
-        ]
-        for t, cols in tables.items()
-    }
-    '''
+    return dict(row._mapping)
