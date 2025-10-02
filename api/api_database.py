@@ -258,17 +258,16 @@ def verify_matches(matches_id: str, db: Session = Depends(get_db)) -> dict:
     SELECT 
         ms.*,
         (select json_agg(a.*) from fixtures a where a.id = ms.fixture_id) AS fixture,
-        (select json_agg(a.*) from teams b where b.id = ms.home_team_id) AS homeTeam,
-        (select json_agg(a.*) from players c where c.id = ms.home_team_captain_id) AS homeCaptain,
-        (select json_agg(a.*) from teams d where d.id = ms.away_team_id) AS awayTeam,
-        (select json_agg(a.*) from players e where e.id = ms.away_team_captain_id) AS awayCaptain,
-
-        (select json_agg(a.*) from officials e where e.id = ms.official_main_referee_id) AS officialMain,
-        (select json_agg(a.*) from officials e where e.id = ms.official_assistant_1_referee_id) AS officialAss1,
-        (select json_agg(a.*) from officials e where e.id = ms.official_assistant_2_referee_id) AS officialAss2,
-        (select json_agg(a.*) from officials e where e.id = ms.official_fourth_referee_id) AS officialFourth,
-        (select json_agg(a.*) from officials e where e.id = ms.official_var_id) AS officialVar,
-        (select json_agg(a.*) from officials e where e.id = ms.official_assistant_var_id) AS officialVarAss       
+        (select json_agg(b.*) from teams b where b.id = ms.home_team_id) AS homeTeam,
+        (select json_agg(c.*) from players c where c.id = ms.home_team_captain_id) AS homeCaptain,
+        (select json_agg(d.*) from teams d where d.id = ms.away_team_id) AS awayTeam,
+        (select json_agg(e.*) from players e where e.id = ms.away_team_captain_id) AS awayCaptain,
+        (select json_agg(f.*) from officials f where f.id = ms.official_main_referee_id) AS officialMain,
+        (select json_agg(g.*) from officials g where g.id = ms.official_assistant_1_referee_id) AS officialAss1,
+        (select json_agg(h.*) from officials h where h.id = ms.official_assistant_2_referee_id) AS officialAss2,
+        (select json_agg(i.*) from officials i where i.id = ms.official_fourth_referee_id) AS officialFourth,
+        (select json_agg(j.*) from officials j where j.id = ms.official_var_id) AS officialVar,
+        (select json_agg(k.*) from officials k where k.id = ms.official_assistant_var_id) AS officialVarAss      
 
     FROM matches ms
     WHERE id = :matches_id
