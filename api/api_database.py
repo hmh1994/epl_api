@@ -196,3 +196,22 @@ def verify_match_stats(team_stats_id: str, db: Session = Depends(get_db)) -> dic
 
     return dict(row._mapping)
 
+@router.get("/verify/fixtures/{fixtures_id}")
+def verify_fixtures(fixtures_id: str, db: Session = Depends(get_db)) -> dict:
+    sql = """
+    SELECT 
+        ms.*,
+        (select json_agg(a.*) from seasons a where a.id = ms.season_id) AS season,
+        (select json_agg(b.*) from teams b where b.id = ms.home_team_id) AS home,        
+        (select json_agg(c.*) from teams c where c.id = ms.away_team_id) AS away,
+        (select json_agg(d.*) from ground d where d.id = ms.ground_id) AS ground
+    FROM fixtures ms
+    WHERE id = :fixtures_id
+    """
+    query = db.execute(text(sql), {"fixtures_id": fixtures_id})
+    row = query.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="team_stats not found")
+
+    return dict(row._mapping)
