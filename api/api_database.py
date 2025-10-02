@@ -113,3 +113,33 @@ def verify_teams(teams_id: str, db: Session = Depends(get_db)) -> dict:
         raise HTTPException(status_code=404, detail="Teams not found")
 
     return dict(row._mapping)
+
+@router.get("/verify/grounds/{grounds_id}")
+def verify_grounds(grounds_id: str, db: Session = Depends(get_db)) -> dict:
+    sql = """
+    SELECT *
+    FROM grounds
+    WHERE id = :grounds_id
+    """
+    query = db.execute(text(sql), {"grounds_id": grounds_id})
+    row = query.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Grounds not found")
+
+    return dict(row._mapping)
+
+@router.get("/verify/awards/{awards_id}")
+def verify_awards(awards_id: str, db: Session = Depends(get_db)) -> dict:
+    sql = """
+    SELECT *
+    FROM awards
+    WHERE id = :awards_id
+    """
+    query = db.execute(text(sql), {"awards_id": awards_id})
+    row = query.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Awards not found")
+
+    return dict(row._mapping)
