@@ -68,3 +68,48 @@ def verify_officials(officials_id: str, db: Session = Depends(get_db)) -> dict:
         raise HTTPException(status_code=404, detail="Officials not found")
 
     return dict(row._mapping)
+
+@router.get("/verify/competitions/{competitions_id}")
+def verify_competitions(competitions_id: str, db: Session = Depends(get_db)) -> dict:
+    sql = """
+    SELECT *
+    FROM competitions
+    WHERE id = :competitions_id
+    """
+    query = db.execute(text(sql), {"competitions_id": competitions_id})
+    row = query.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Competitions not found")
+
+    return dict(row._mapping)
+
+@router.get("/verify/news/{news_id}")
+def verify_news(news_id: str, db: Session = Depends(get_db)) -> dict:
+    sql = """
+    SELECT *
+    FROM news
+    WHERE id = :news_id
+    """
+    query = db.execute(text(sql), {"news_id": news_id})
+    row = query.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    return dict(row._mapping)
+
+@router.get("/verify/teams/{teams_id}")
+def verify_teams(teams_id: str, db: Session = Depends(get_db)) -> dict:
+    sql = """
+    SELECT *
+    FROM teams
+    WHERE id = :teams_id
+    """
+    query = db.execute(text(sql), {"teams_id": teams_id})
+    row = query.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Teams not found")
+
+    return dict(row._mapping)
