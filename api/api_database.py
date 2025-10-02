@@ -251,3 +251,32 @@ def verify_seasons(seasons_id: str, db: Session = Depends(get_db)) -> dict:
         raise HTTPException(status_code=404, detail="Seasons not found")
 
     return dict(row._mapping)
+
+@router.get("/verify/matches/{matches_id}")
+def verify_matches(matches_id: str, db: Session = Depends(get_db)) -> dict:
+    sql = """
+    SELECT 
+        ms.*,
+        (select json_agg(a.*) from fixtures a where a.id = ms.fixture_id) AS fixture,
+        (select json_agg(a.*) from teams b where b.id = ms.home_team_id) AS homeTeam,
+        (select json_agg(a.*) from players c where c.id = ms.home_team_captain_id) AS homeCaptain,
+        (select json_agg(a.*) from teams d where d.id = ms.away_team_id) AS awayTeam,
+        (select json_agg(a.*) from players e where e.id = ms.away_team_captain_id) AS awayCaptain,
+
+        (select json_agg(a.*) from officials e where e.id = ms.official_main_referee_id) AS officialMain,
+        (select json_agg(a.*) from officials e where e.id = ms.official_assistant_1_referee_id) AS officialAss1,
+        (select json_agg(a.*) from officials e where e.id = ms.official_assistant_2_referee_id) AS officialAss2,
+        (select json_agg(a.*) from officials e where e.id = ms.official_fourth_referee_id) AS officialFourth,
+        (select json_agg(a.*) from officials e where e.id = ms.official_var_id) AS officialVar,
+        (select json_agg(a.*) from officials e where e.id = ms.official_assistant_var_id) AS officialVarAss       
+
+    FROM matches ms
+    WHERE id = :matches_id
+    """
+    query = db.execute(text(sql), {"matches_id": matches_id})
+    row = query.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="matches not found")
+
+    return dict(row._mapping)
