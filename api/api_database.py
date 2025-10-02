@@ -204,7 +204,7 @@ def verify_fixtures(fixtures_id: str, db: Session = Depends(get_db)) -> dict:
         (select json_agg(a.*) from seasons a where a.id = ms.season_id) AS season,
         (select json_agg(b.*) from teams b where b.id = ms.home_team_id) AS home,        
         (select json_agg(c.*) from teams c where c.id = ms.away_team_id) AS away,
-        (select json_agg(d.*) from ground d where d.id = ms.ground_id) AS ground
+        (select json_agg(d.*) from grounds d where d.id = ms.ground_id) AS ground
     FROM fixtures ms
     WHERE id = :fixtures_id
     """
@@ -212,6 +212,6 @@ def verify_fixtures(fixtures_id: str, db: Session = Depends(get_db)) -> dict:
     row = query.fetchone()
 
     if not row:
-        raise HTTPException(status_code=404, detail="team_stats not found")
+        raise HTTPException(status_code=404, detail="fixtures not found")
 
     return dict(row._mapping)
