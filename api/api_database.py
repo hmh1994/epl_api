@@ -164,7 +164,7 @@ def verify_match_stats(match_stats_id: str, db: Session = Depends(get_db)) -> di
     WHERE id = :match_stats_id
     """
     query = db.execute(text(sql), {"match_stats_id": match_stats_id})
-        row = query.fetchone()
+    row = query.fetchone()
 
     if not row:
         raise HTTPException(status_code=404, detail="Awards not found")
