@@ -181,7 +181,10 @@ def verify_match_stats(team_stats_id: str, db: Session = Depends(get_db)) -> dic
             SELECT json_agg(m.*)
             FROM grounds m
             WHERE m.id = ms.ground_id
-        ) AS grounds
+        ) AS grounds,
+        (select json_agg(a.*) from staffs a where a.id = ms.manager_id) AS managers,
+        (select json_agg(b.*) from seasons b where b.id = ms.season_id) AS season,
+        (select json_agg(c.*) from teams c where c.id = ms.team_id) AS team,
     FROM team_stats ms
     WHERE id = :team_stats_id
     """
