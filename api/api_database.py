@@ -184,9 +184,9 @@ def verify_match_stats(team_stats_id: str, db: Session = Depends(get_db)) -> dic
         ) AS grounds,
         (select json_agg(a.*) from staffs a where a.id = ms.manager_id) AS managers,
         (select json_agg(b.*) from seasons b where b.id = ms.season_id) AS season,
-        (select json_agg(c.*) from teams c where c.id = ms.team_id) AS team,
+        (select json_agg(c.*) from teams c where c.id = ms.team_id) AS team
     FROM team_stats ms
-    WHERE id = :team_stats_id
+    WHERE id = :team_stats_id 
     """
     query = db.execute(text(sql), {"team_stats_id": team_stats_id})
     row = query.fetchone()
@@ -195,3 +195,4 @@ def verify_match_stats(team_stats_id: str, db: Session = Depends(get_db)) -> dic
         raise HTTPException(status_code=404, detail="team_stats not found")
 
     return dict(row._mapping)
+
