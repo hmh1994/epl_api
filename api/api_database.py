@@ -234,3 +234,20 @@ def verify_fixtures(fixtures_id: str, db: Session = Depends(get_db)) -> dict:
         raise HTTPException(status_code=404, detail="fixtures not found")
 
     return dict(row._mapping)
+
+@router.get("/verify/seasons/{seasons_id}")
+def verify_seasons(seasons_id: str, db: Session = Depends(get_db)) -> dict:
+    sql = """
+    SELECT 
+        ms.*,
+        (select json_agg(a.*) from competitions a where a.id = ms.competition_id) AS competition       
+    FROM seasons ms
+    WHERE id = :seasons_id
+    """
+    query = db.execute(text(sql), {"seasons_id": seasons_id})
+    row = query.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Seasons not found")
+
+    return dict(row._mapping)
