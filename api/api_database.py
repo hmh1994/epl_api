@@ -173,7 +173,7 @@ def verify_match_stats(match_stats_id: str, db: Session = Depends(get_db)) -> di
 
 
 @router.get("/verify/team_stats/{team_stats_id}")
-def verify_match_stats(team_stats_id: str, db: Session = Depends(get_db)) -> dict:
+def verify_team_stats(team_stats_id: str, db: Session = Depends(get_db)) -> dict:
     sql = """
     SELECT 
         ms.*,
@@ -193,6 +193,24 @@ def verify_match_stats(team_stats_id: str, db: Session = Depends(get_db)) -> dic
 
     if not row:
         raise HTTPException(status_code=404, detail="team_stats not found")
+
+    return dict(row._mapping)
+
+@router.get("/verify/player_stats/{player_stats_id}")
+def verify_player_stats(player_stats_id: str, db: Session = Depends(get_db)) -> dict:
+    sql = """
+    SELECT 
+        (select json_agg(a.*) from players a where a.id = ms.player_id) AS player,
+        (select json_agg(b.*) from seasons b where b.id = ms.season_id) AS season,
+        (select json_agg(c.*) from teams c where c.id = ms.team_id) AS team
+    FROM player_stats ms
+    WHERE id = :player_stats_id 
+    """
+    query = db.execute(text(sql), {"player_stats_id": player_stats_id})
+    row = query.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="player_stats not found")
 
     return dict(row._mapping)
 
