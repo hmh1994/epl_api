@@ -200,6 +200,7 @@ def verify_team_stats(team_stats_id: str, db: Session = Depends(get_db)) -> dict
 def verify_player_stats(player_stats_id: str, db: Session = Depends(get_db)) -> dict:
     sql = """
     SELECT 
+        ms.*,
         (select json_agg(a.*) from players a where a.id = ms.player_id) AS player,
         (select json_agg(b.*) from seasons b where b.id = ms.season_id) AS season,
         (select json_agg(c.*) from teams c where c.id = ms.team_id) AS team
