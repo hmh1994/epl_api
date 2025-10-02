@@ -143,3 +143,30 @@ def verify_awards(awards_id: str, db: Session = Depends(get_db)) -> dict:
         raise HTTPException(status_code=404, detail="Awards not found")
 
     return dict(row._mapping)
+
+
+@router.get("/verify/match_stats/{match_stats_id}")
+def verify_match_stats(match_stats_id: str, db: Session = Depends(get_db)) -> dict:
+    sql = """
+    SELECT 
+        ms.*,
+        (
+            SELECT json_agg(m.*)
+            FROM matches m
+            WHERE m.id = ms.match_id
+        ) AS matches,
+        (
+            SELECT json_agg(t.*)
+            FROM teams t
+            WHERE t.id = ms.team_id
+        ) AS teams
+    FROM match_stats ms
+    WHERE id = :match_stats_id
+    """
+    query = db.execute(text(sql), {"match_stats_id": match_stats_id})
+        row = query.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Awards not found")
+
+    return dict(row._mapping)
