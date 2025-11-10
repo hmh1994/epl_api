@@ -13,7 +13,7 @@ def get_teams(db: Session, league_id: str = None, search: str = None):
         params["search"] = f"%{search}%"
 
     query = db.execute(text(sql), params)
-    result = query.fetchall()
+    result = query.mappings().all()  # <- 여기서 dict 형태로 변환
 
     teams = []
     for row in result:
