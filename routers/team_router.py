@@ -12,9 +12,5 @@ def teams(
     db: Session = Depends(get_db)
 ):
     data = get_teams(db, leagueId, search)
-    return {
-        "data": data,
-        "meta": {
-            "total": len(data)
-        }
-    }
+    meta = {"total": len(data), "leagueId": leagueId}
+    return {"data": data, "meta": meta}

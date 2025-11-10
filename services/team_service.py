@@ -22,8 +22,7 @@ def get_teams(
     if filters:
         sql_str += " WHERE " + " AND ".join(filters)
 
-    sql = text(sql_str)  # 반드시 text()로 감싸야 함
-
+    sql = text(sql_str)
     rows = db.execute(sql, params).fetchall()
 
     mapping = {
@@ -35,4 +34,4 @@ def get_teams(
         "stadium": "stadium"
     }
 
-    return [map_row(dict(row), mapping) for row in rows]
+    return [map_row(dict(row._mapping), mapping) for row in rows]
