@@ -9,7 +9,7 @@ app = FastAPI(title="Football Data API", version="1.0",)
 from fastapi import FastAPI, Depends, Query
 from sqlalchemy.orm import Session
 from utils.league import map_league_id
-from utils.time import current_millis
+from utils.time_utils import current_millis
 from database import get_db
 
 from crud import teams, leagues, matches, players
