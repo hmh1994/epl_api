@@ -26,4 +26,4 @@ def get_teams(db: Session, league_id: str = None, search: str = None):
             "stadium": None
         })
 
-    return {"data": teams, "meta": {"total": len(teams)}}
+    return {"TeamSummary": teams, "meta": {"total": len(teams)}}
