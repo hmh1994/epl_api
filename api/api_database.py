@@ -23,7 +23,7 @@ def get_columns_only():
         t: [col["name"] for col in cols]
         for t, cols in tables.items()
     }
-
+'''
 @router.get("/verify/players/{players_id}")
 def verify_players(players_id: str, db: Session = Depends(get_db)) -> dict:
     sql = """
@@ -279,3 +279,4 @@ def verify_matches(matches_id: str, db: Session = Depends(get_db)) -> dict:
         raise HTTPException(status_code=404, detail="matches not found")
 
     return dict(row._mapping)
+    '''

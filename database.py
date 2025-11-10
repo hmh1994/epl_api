@@ -1,11 +1,12 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base  
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-DB_URL = "postgresql://postgres:holders-hyah-movin-latch@football-data-v1.cb0kwomosfy3.ap-northeast-2.rds.amazonaws.com/postgres"
-engine = create_engine(DB_URL, echo=True)
+from config import DB_URL
+
+engine = create_engine(DB_URL, echo=True, future=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()  
+Base = declarative_base()
 
 def get_db():
     db = SessionLocal()
@@ -13,3 +14,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def execute_raw(db, sql: str, params: dict = None):
+    stmt = text(sql)
+    result = db.execute(stmt, params or {})
+    return [dict(row) for row in result.fetchall()]
