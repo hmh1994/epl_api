@@ -13,5 +13,5 @@ class ApiResponseMeta(BaseModel):
     pass
 
 class TeamsInfoResponse(BaseModel):
-    data: List[TeamSummary]
+    TeamSummary: List[TeamSummary]
     meta: dict 
