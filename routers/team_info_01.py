@@ -16,4 +16,4 @@ def get_teams(
 ):
     sql = text("SELECT * FROM teams")
     result = db.execute(sql).fetchall()
-    return [dict(row) for row in result]
+    return [dict(row._mapping) for row in result]
