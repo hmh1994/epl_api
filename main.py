@@ -1,9 +1,25 @@
 from fastapi import FastAPI
-from routers.team_info_01 import router as TeamRouter
-from routers.league_meta_02 import router as LeagueRouter
+from routers.team_info_01 import router as Router1
+from routers.league_meta_02 import router as Router2
+from routers.league_rank_03 import router as Router3
+from routers.hub_home_04 import router as Router4
+from routers.league_pulse_05 import router as Router5
+from routers.player_rank_06 import router as Router6
+from routers.schedule_07 import router as Router7
+from routers.match_detail_08 import router as Router8
+from routers.player_db_09 import router as Router9
+from routers.team_detail_10 import router as Router10
 
 app = FastAPI(title="Football Data API", version="1.0",)
 
-app.include_router(TeamRouter)
-app.include_router(LeagueRouter)
+app.include_router(Router1)
+app.include_router(Router2)
+app.include_router(Router3)
+app.include_router(Router4)
+app.include_router(Router5)
+app.include_router(Router6)
+app.include_router(Router7)
+app.include_router(Router8)
+app.include_router(Router9)
+app.include_router(Router10)
 
