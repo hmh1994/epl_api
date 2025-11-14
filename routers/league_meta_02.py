@@ -13,6 +13,6 @@ def get_league_metadata(
     locale: Optional[str] = Query("ko-KR"),
     db: Session = Depends(get_db),
 ):
-     sql = text("SELECT * FROM teams")
+    sql = text("SELECT * FROM teams")
     result = db.execute(sql).fetchall()
     return [dict(row._mapping) for row in result]
