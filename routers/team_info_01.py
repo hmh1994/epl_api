@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from typing import Optional
 from database import get_db
 
@@ -13,6 +14,6 @@ def get_teams(
     locale: Optional[str] = Query("ko-KR"),
     db: Session = Depends(get_db),
 ):
-    sql = "SELECT * FROM teams"
+    sql = text("SELECT * FROM teams")
     result = db.execute(sql).fetchall()
     return [dict(row) for row in result]
