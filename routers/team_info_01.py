@@ -1,0 +1,18 @@
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+from typing import Optional
+from database import get_db
+
+router = APIRouter(prefix="/api/v1", tags=["team_info_01.py"])
+
+@router.get("/teams")
+def get_teams(
+    leagueId: Optional[str] = None,
+    search: Optional[str] = None,
+    season: Optional[str] = None,
+    locale: Optional[str] = "ko-KR",
+    db: Session = Depends(get_db),
+):
+    sql = "SELECT * FROM teams"
+    result = db.execute(sql).fetchall()
+    return [dict(row) for row in result]
