@@ -49,13 +49,14 @@ def get_current_or_latest_season_id(db: Session, competition_id: str):
         return row._mapping["id"]
 
     # 2) 시즌 기간이 아니라면 → 최신 시즌
-    sql_latest = text("""
+    sql_latest_past = text("""
         SELECT id
         FROM seasons
         WHERE competition_id = :cid
+          AND date_start <= :now
         ORDER BY date_start DESC
         LIMIT 1
     """)
 
-    row = db.execute(sql_latest, {"cid": competition_id}).fetchone()
+    row = db.execute(sql_latest_past, {"cid": competition_id, "now": now}).fetchone()
     return row._mapping["id"] if row else None
