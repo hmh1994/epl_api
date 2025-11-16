@@ -5,6 +5,11 @@ from typing import Optional
 from database import get_db
 
 from utils.leagues_util import LEAGUE_ENUM_MAP, get_competition_id
+from utils.seasons_util import (
+    web_to_db_season,
+    get_season_id_by_abbr,
+    get_current_or_latest_season_id
+)
 
 
 router = APIRouter(prefix="/api/v1", tags=["team_detail_10"])
