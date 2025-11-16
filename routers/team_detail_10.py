@@ -160,9 +160,9 @@ def get_team_squad(
         "team": team_profile,
         "squad": squad,
         "meta": {
-            "season": season_id
+            "season": season_id,
             "leagueId": competition_id,
-            "leaugeName": leagueId,
-            "teamId": teamId,            
+            "leagueName": leagueId,
+            "teamId": teamId            
         }
     }
