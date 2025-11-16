@@ -113,6 +113,6 @@ def get_team_squad(
         },
         "meta": {
             "teamId": teamId,
-            "season": season
+            "season": season_id
         }
     }
