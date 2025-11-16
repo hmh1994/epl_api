@@ -156,13 +156,26 @@ def get_team_squad(
         player["passing_assists"] = player["passing_assists"] or 0
         squad.append(player)
 
+    ### 추후 공용 모델로 변경 예정
+    team_key_map = {
+    }
+    team_profile_mapped = {team_key_map.get(k, k): v for k, v in team_profile.items()}
+
+    player_key_map = {
+    }
+
+    squad_mapped = [
+        {player_key_map.get(k, k): v for k, v in player.items()} for player in squad
+    ]
+
+    
     return {
-        "team": team_profile,
-        "squad": squad,
+        "team": team_profile_mapped,
+        "squad": squad_mapped,
         "meta": {
             "season": season_id,
             "leagueId": competition_id,
             "leagueName": leagueId,
-            "teamId": teamId            
+            "teamId": teamId,
         }
     }
