@@ -78,7 +78,7 @@ def get_team_squad(
     team_profile["ground_name"] = ground_row._mapping["ground_name"] if ground_row else None
     team_profile["ground_capacity"] = ground_row._mapping["capacity"] if ground_row else None
 
- sql_stats = text("""
+    sql_stats = text("""
         SELECT 
             (SELECT display_name_en FROM staffs WHERE id = ts.manager_id) AS manager,
             ts.overall_points,
