@@ -85,7 +85,7 @@ def get_team_squad(
             SELECT 
                 team_id,
                 ROW_NUMBER() OVER (
-                    ORDER BY overall_points DESC, (overall_goals_for - overall_goals_against) DESC
+                    ORDER BY overall_points DESC, overall_goals_difference DESC
                 ) AS rank
             FROM team_stats
             WHERE season_id = :season_id
@@ -127,9 +127,33 @@ def get_team_squad(
             "overall_goals_against": None,
         })
 
+    ## PlayerProfile
+    ### 1
+    sql_squad = text("""
+        SELECT 
+            p.id AS player_id,
+            p.display_name_en,
+            p.display_name_kr,
+            EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.birth_date)) AS age,
+            p.nationality_en,
+            p.nationality_kr,
+            ps.number,
+            ps.shooting_goals,
+            ps.passing_assists,
+            ps.appearances
+        FROM players p
+        JOIN player_stats ps
+            ON p.id = ps.player_id
+        WHERE ps.team_id = :team_id
+        AND ps.season_id = :season_id
+    """)
+    squad_rows = db.execute(sql_squad, {"team_id": teamId, "season_id": season_id}).fetchall()
+    squad = [dict(row._mapping) for row in squad_rows]
+
     return {
         "data": {
-            "team": team_profile
+            "team": team_profile,
+            "squad": squad
         },
         "meta": {
             "leagueId": competition_id,
