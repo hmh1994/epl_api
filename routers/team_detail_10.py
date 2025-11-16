@@ -79,6 +79,22 @@ def get_team_squad(
     team_profile["ground_capacity"] = ground_row._mapping["capacity"] if ground_row else None
 
     ### 3
+    sql_rank = text("""
+    SELECT rank
+    FROM (
+        SELECT 
+            team_id,
+            RANK() OVER (ORDER BY overall_points DESC) AS rank
+        FROM team_stats
+        WHERE season_id = :season_id
+    ) ranked
+    WHERE team_id = :team_id
+    LIMIT 1
+    """)
+    rank_row = db.execute(sql_rank, {"season_id": season_id, "team_id": teamId}).fetchone()
+    team_profile["rank"] = rank_row._mapping["rank"] if rank_row else None
+
+    ### 4
     sql_stats = text("""
         SELECT 
             (SELECT display_name_en FROM staffs WHERE id = ts.manager_id) AS manager_en,
