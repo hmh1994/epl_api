@@ -3,6 +3,7 @@ from sqlalchemy import text
 
 LEAGUE_ENUM_MAP = {
     "EPL": "EN_PR",
+    "epl": "EN_PR",
 }
 
 def get_competition_id(db: Session, leagueId: str):
