@@ -158,7 +158,26 @@ def get_team_squad(
 
     ### 추후 공용 모델로 변경 예정
     team_key_map = {
-        "name_en" : "nameEn"
+        "id": "id",
+        "name_en": "nameEn",
+        "name_kr": "nameKr",
+        "short_name_en": "shortNameEn",
+        "short_name_kr": "shortNameKr",
+        "icon_url": "logo",
+        "founded_year": "founded",
+        "ground_name_en": "stadiumEn",
+        "ground_name_kr": "stadiumKr",
+        "ground_capacity": "capacity",
+        "rank": "rank",
+        "manager_en": "managerEn",
+        "manager_kr": "managerKr",
+        "overall_points": "points",
+        "overall_matches": "played",
+        "overall_matches_won": "won",
+        "overall_matches_drawn": "drawn",
+        "overall_matches_lost": "lost",
+        "overall_goals_for": "goalsFor",
+        "overall_goals_against": "goalsAgainst"
     }
     team_profile_mapped = {team_key_map.get(k, k): v for k, v in team_profile.items()}
 
