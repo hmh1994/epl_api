@@ -43,19 +43,17 @@ def get_team_squad(
 
     ## 시즌 정보 조회
     if season:  
-        # "2024-25" → "24/25"
         season_db = web_to_db_season(season)
-        # abbreviation + competition_id → season_id
         season_id = get_season_id_by_abbr(db, competition_id, season_db)
         if not season_id:
             return {"error": f"Season not found: {season}"}
     else:
-        # 시즌이 없으면 → 현재 시즌 or 최신 시즌
         season_id = get_current_or_latest_season_id(db, competition_id)
         if not season_id:
             return {"error": "No season data found"}
 
     ## TeamProfile
+    ### 1
     sql_team = text("""
         SELECT id, name_en, name_kr, short_name_en, short_name_kr, icon_url, founded_year
         FROM teams
@@ -67,7 +65,7 @@ def get_team_squad(
 
     team_profile = dict(team_row._mapping)
     
-
+    ### 2
     sql_ground = text("""
         SELECT g.name_en as ground_name_en, g.name_kr as ground_name_kr, g.capacity
         FROM grounds g
@@ -80,6 +78,7 @@ def get_team_squad(
     team_profile["ground_name_kr"] = ground_row._mapping["ground_name_kr"] if ground_row else None
     team_profile["ground_capacity"] = ground_row._mapping["capacity"] if ground_row else None
 
+    ### 3
     sql_stats = text("""
         SELECT 
             (SELECT display_name_en FROM staffs WHERE id = ts.manager_id) AS manager_en,
@@ -115,6 +114,7 @@ def get_team_squad(
             "team": team_profile
         },
         "meta": {
+            "leagueId": competition_id,
             "teamId": teamId,
             "season": season_id
         }
