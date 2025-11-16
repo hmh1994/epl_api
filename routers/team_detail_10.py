@@ -40,8 +40,7 @@ def get_team_profiles(
         "meta": {
             "season": season_id,
             "leagueId": competition_id,
-            "leagueName": leagueId,
-            "teamId": teamId,
+            "leagueName": leagueId
         }
     }
 
