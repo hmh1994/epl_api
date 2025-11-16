@@ -149,7 +149,13 @@ def get_team_squad(
         AND ps.season_id = :season_id
     """)
     squad_rows = db.execute(sql_squad, {"team_id": teamId, "season_id": season_id}).fetchall()
-    squad = [dict(row._mapping) for row in squad_rows]
+    squad = []
+    for row in squad_rows:
+        player = dict(row._mapping)
+        # null 처리
+        player["shooting_goals"] = player["shooting_goals"] or 0
+        player["passing_assists"] = player["passing_assists"] or 0
+        squad.append(player)
 
     return {
         "data": {
