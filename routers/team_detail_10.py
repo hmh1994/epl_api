@@ -10,22 +10,40 @@ from utils.seasons_util import (
     get_season_id_by_abbr,
     get_current_or_latest_season_id
 )
-
-
 router = APIRouter(prefix="/api/v1", tags=["team_detail_10"])
 
 ##TeamProfilesResponse
 @router.get("/leagues/{leagueId}/teams/profiles")
 def get_team_profiles(
     leagueId: str,
-    season: Optional[str] = Query(None),
-    locale: Optional[str] = Query("ko-KR"),
+    season: Optional[str] = Query(None, description = "If no season is provided, the default value is the latest season"),
+    locale: Optional[str] = Query("en-US", description = "support only ko-KR, en-US"),
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    sql = text("SELECT * FROM teams")
-    result = db.execute(sql).fetchall()
-    return [dict(row._mapping) for row in result]
+    ## 리그 정보 조회
+    competition_id, error = get_competition_id(db, leagueId)
+    if error:
+        return {"error": error}
+    ## 시즌 정보 조회
+    if season:  
+        season_db = web_to_db_season(season)
+        season_id = get_season_id_by_abbr(db, competition_id, season_db)
+        if not season_id:
+            return {"error": f"Season not found: {season}"}
+    else:
+        season_id = get_current_or_latest_season_id(db, competition_id)
+        if not season_id:
+            return {"error": "No season data found"}
+    
+    return {
+        "meta": {
+            "season": season_id,
+            "leagueId": competition_id,
+            "leagueName": leagueId,
+            "teamId": teamId,
+        }
+    }
 
 ##TeamSquadResponse
 @router.get("/leagues/{leagueId}/teams/{teamId}/squad")
