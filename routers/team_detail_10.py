@@ -55,25 +55,64 @@ def get_team_squad(
         if not season_id:
             return {"error": "No season data found"}
 
-    
+    ## TeamProfile
+    sql_team = text("""
+        SELECT id, name_en, short_name_en, icon_url, founded_year
+        FROM teams
+        WHERE id = :team_id
+    """)
+    team_row = db.execute(sql_team, {"team_id": teamId}).fetchone()
+    if not team_row:
+        return {"error": "Team not found"}
+
+    team_profile = dict(team_row._mapping)
+
+    sql_ground = text("""
+        SELECT g.name_en AS ground_name, g.capacity
+        FROM grounds g
+        JOIN team_stats ts ON g.id = ts.ground_id
+        WHERE ts.season_id = :season_id AND ts.team_id = :team_id
+        LIMIT 1
+    """)
+    ground_row = db.execute(sql_ground, {"season_id": season_id, "team_id": teamId}).fetchone()
+    team_profile["ground_name"] = ground_row._mapping["ground_name"] if ground_row else None
+    team_profile["ground_capacity"] = ground_row._mapping["capacity"] if ground_row else None
+
+ sql_stats = text("""
+        SELECT 
+            (SELECT display_name_en FROM staffs WHERE id = ts.manager_id) AS manager,
+            ts.overall_points,
+            ts.overall_matches,
+            ts.overall_matches_won,
+            ts.overall_matches_drawn,
+            ts.overall_matches_lost,
+            ts.overall_goals_for,
+            ts.overall_goals_against
+        FROM team_stats ts
+        WHERE ts.season_id = :season_id AND ts.team_id = :team_id
+        LIMIT 1
+    """)
+    stats_row = db.execute(sql_stats, {"season_id": season_id, "team_id": teamId}).fetchone()
+    if stats_row:
+        team_profile.update(dict(stats_row._mapping))
+    else:
+        team_profile.update({
+            "manager": None,
+            "overall_points": None,
+            "overall_matches": None,
+            "overall_matches_won": None,
+            "overall_matches_drawn": None,
+            "overall_matches_lost": None,
+            "overall_goals_for": None,
+            "overall_goals_against": None,
+        })
+
     return {
-        "leagueId": leagueId,
-        "competitionId": competition_id,
-        "teamId": teamId,
-        "seasonParam": season,
-        "seasonId": season_id,
-        "locale": locale,
-        "message": "Season resolved successfully. Ready for squad SQL."
+        "data": {
+            "team": team_profile
+        },
+        "meta": {
+            "teamId": teamId,
+            "season": season
+        }
     }
-
-
-'''
-    ##TeamProfile
-
-    ##PlayerProfile
-
-    ##ApiResponseMeta
-
-    sql = text("SELECT * FROM teams")
-    result = db.execute(sql).fetchall()
-    return [dict(row._mapping) for row in result]'''
