@@ -158,7 +158,7 @@ def get_team_squad(
 
     return {
         "team": team_profile,
-        "squad": squad
+        "squad": squad,
         "meta": {
             "season": season_id
             "leagueId": competition_id,
