@@ -27,3 +27,4 @@ def get_competition_id(db: Session, leagueId: str):
         return None, f"Competition not found for abbreviation: {league_abbr}"
 
     return row._mapping["id"], None
+

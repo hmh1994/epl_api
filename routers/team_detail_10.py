@@ -152,19 +152,17 @@ def get_team_squad(
     squad = []
     for row in squad_rows:
         player = dict(row._mapping)
-        # null 처리
         player["shooting_goals"] = player["shooting_goals"] or 0
         player["passing_assists"] = player["passing_assists"] or 0
         squad.append(player)
 
     return {
-        "data": {
-            "team": team_profile,
-            "squad": squad
-        },
+        "team": team_profile,
+        "squad": squad
         "meta": {
-            "leagueId": competition_id,
-            "teamId": teamId,
             "season": season_id
+            "leagueId": competition_id,
+            "leaugeName": leagueId,
+            "teamId": teamId,            
         }
     }
