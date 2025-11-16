@@ -80,16 +80,18 @@ def get_team_squad(
 
     ### 3
     sql_rank = text("""
-    SELECT rank
-    FROM (
-        SELECT 
-            team_id,
-            RANK() OVER (ORDER BY overall_points DESC) AS rank
-        FROM team_stats
-        WHERE season_id = :season_id
-    ) ranked
-    WHERE team_id = :team_id
-    LIMIT 1
+        SELECT rank
+        FROM (
+            SELECT 
+                team_id,
+                ROW_NUMBER() OVER (
+                    ORDER BY overall_points DESC, (overall_goals_for - overall_goals_against) DESC
+                ) AS rank
+            FROM team_stats
+            WHERE season_id = :season_id
+        ) ranked
+        WHERE team_id = :team_id
+        LIMIT 1
     """)
     rank_row = db.execute(sql_rank, {"season_id": season_id, "team_id": teamId}).fetchone()
     team_profile["rank"] = rank_row._mapping["rank"] if rank_row else None
