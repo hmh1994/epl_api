@@ -57,7 +57,7 @@ def get_team_squad(
 
     ## TeamProfile
     sql_team = text("""
-        SELECT id, name_en, short_name_en, icon_url, founded_year
+        SELECT id, name_en, name_kr, short_name_en, short_name_kr, icon_url, founded_year
         FROM teams
         WHERE id = :team_id
     """)
@@ -66,21 +66,24 @@ def get_team_squad(
         return {"error": "Team not found"}
 
     team_profile = dict(team_row._mapping)
+    
 
     sql_ground = text("""
-        SELECT g.name_en AS ground_name, g.capacity
+        SELECT g.name_en as ground_name_en, g.name_kr as ground_name_kr, g.capacity
         FROM grounds g
         JOIN team_stats ts ON g.id = ts.ground_id
         WHERE ts.season_id = :season_id AND ts.team_id = :team_id
         LIMIT 1
     """)
     ground_row = db.execute(sql_ground, {"season_id": season_id, "team_id": teamId}).fetchone()
-    team_profile["ground_name"] = ground_row._mapping["ground_name"] if ground_row else None
+    team_profile["ground_name_en"] = ground_row._mapping["ground_name_en"] if ground_row else None
+    team_profile["ground_name_kr"] = ground_row._mapping["ground_name_kr"] if ground_row else None
     team_profile["ground_capacity"] = ground_row._mapping["capacity"] if ground_row else None
 
     sql_stats = text("""
         SELECT 
-            (SELECT display_name_en FROM staffs WHERE id = ts.manager_id) AS manager,
+            (SELECT display_name_en FROM staffs WHERE id = ts.manager_id) AS manager_en,
+            (SELECT display_name_kr FROM staffs WHERE id = ts.manager_id) AS manager_kr,
             ts.overall_points,
             ts.overall_matches,
             ts.overall_matches_won,
