@@ -137,6 +137,7 @@ def get_team_squad(
             EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.birth_date)) AS age,
             p.nationality_en,
             p.nationality_kr,
+            p.position,
             ps.number,
             ps.shooting_goals,
             ps.passing_assists,
