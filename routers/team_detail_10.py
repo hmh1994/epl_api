@@ -158,6 +158,7 @@ def get_team_squad(
 
     ### 추후 공용 모델로 변경 예정
     team_key_map = {
+        "name_en" : "nameEn"
     }
     team_profile_mapped = {team_key_map.get(k, k): v for k, v in team_profile.items()}
 
