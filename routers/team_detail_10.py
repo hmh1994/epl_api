@@ -182,6 +182,17 @@ def get_team_squad(
     team_profile_mapped = {team_key_map.get(k, k): v for k, v in team_profile.items()}
 
     player_key_map = {
+        "player_id": "id",
+        "display_name_en": "nameEn",
+        "display_name_kr": "nameKr",
+        "age": "age",
+        "nationality_en": "nationalityEn",
+        "nationality_kr": "nationalityKr",
+        "position": "position",
+        "number": "number",
+        "shooting_goals": "goals",
+        "passing_assists": "assists",
+        "appearances": "appearances"
     }
 
     squad_mapped = [
