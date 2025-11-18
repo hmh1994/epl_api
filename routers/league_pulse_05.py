@@ -42,7 +42,7 @@ def get_league_meta(
             id,
             description_en,
             description_kr,
-            icon_url,
+            icon_url
         from competitions
         where id = :competition_id
         LIMIT 1
