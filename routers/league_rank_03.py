@@ -70,7 +70,8 @@ def get_league_standings(
                 ts.overall_goals_for,
                 ts.overall_goals_against,
                 ts.overall_goals_difference,
-                ts.overall_points
+                ts.overall_points,
+                ts.overall_stat_average_possession
             FROM team_stats ts
             JOIN teams t ON ts.team_id = t.id
             LEFT JOIN grounds g ON ts.ground_id = g.id
@@ -104,15 +105,8 @@ def get_league_standings(
         team_entry = {"teamSummary": team_summary, "record": record}
 
         if includeAdvanced:
-            # advancedMetrics placeholder
             team_entry["advancedMetrics"] = {
-                "xG": None,
-                "xGA": None,
-                "possession": None,
-                "passAccuracy": None,
-                "cleanSheets": None,
-                "bigChances": None,
-                "marketValue": None
+                "possession": row._mapping["overall_stat_average_possession"],
             }
 
         result.append(team_entry)
