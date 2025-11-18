@@ -36,6 +36,18 @@ def get_team_profiles(
         if not season_id:
             return {"error": "No season data found"}
     
+    ## 시즌에 해당 하는 팀 정보를 조회
+    sql_team_ids = text("""
+        SELECT team_id
+        FROM team_stats
+        WHERE season_id = :season_id
+        ORDER BY team_id
+    """)
+
+    team_rows = db.execute(sql_team_ids, {"season_id": season_id}).fetchall()
+    team_ids = [row.team_id for row in team_rows]
+
+
     return {
         "meta": {
             "season": season_id,
