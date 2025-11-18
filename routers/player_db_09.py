@@ -59,7 +59,7 @@ def get_player_database(
         FROM players p
         LEFT JOIN player_stats ps
             ON ps.player_id = p.id
-            AND ps.season = :season_id
+            AND ps.season_id = :season_id
         WHERE p.competition_id = :competition_id
     """)
 
