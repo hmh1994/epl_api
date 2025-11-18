@@ -191,10 +191,8 @@ def get_player_database(
     # 8. 최종 반환
     # -----------------------------------
     return {
-        "data": {
-            "players": players,
-            "filters": filters
-        },
+        "players": players,
+        "filters": filters,
         "meta": {
             "season": season_id,
             "leagueId": competition_id,
