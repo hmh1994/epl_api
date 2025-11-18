@@ -6,23 +6,23 @@ from database import get_db
 from utils.leagues_util import get_competition_id
 from utils.seasons_util import web_to_db_season, get_season_id_by_abbr, get_current_or_latest_season_id
 
-router = APIRouter(prefix="/api/v1", tags=["player_rankings_06"])
+router = APIRouter(prefix="/api/v1", tags=["player_rankings_12"])
 
 @router.get("/leagues/{leagueId}/player-rankings")
 def get_player_rankings(
     leagueId: str,
-    season: Optional[str] = Query(None),
-    locale: Optional[str] = Query("en-US"),
-    category: Optional[str] = Query("top-scorers", regex="^(top-scorers|assists)$"),
-    limit: Optional[int] = Query(10),
+    season: Optional[str] = Query(None, description="If no season is provided, the default value is the latest season"),
+    locale: Optional[str] = Query("en-US", description="support only ko-KR, en-US"),
+    category: Optional[str] = Query("top-scorers", description='top-scorers or assists'),
+    limit: Optional[int] = Query(10, description="Number of top players to return"),
     db: Session = Depends(get_db),
 ):
-    # 1. 리그 정보 조회
+    # 리그 정보 조회
     competition_id, error = get_competition_id(db, leagueId)
     if error:
         return {"error": error}
 
-    # 2. 시즌 정보 조회
+    # 시즌 정보 조회
     if season:
         season_db = web_to_db_season(season)
         season_id = get_season_id_by_abbr(db, competition_id, season_db)
@@ -33,24 +33,26 @@ def get_player_rankings(
         if not season_id:
             return {"error": "No season data found"}
 
-    # 3. 선수 랭킹 조회
-    if category == "top-scorers":
-        order_by = "ps.shooting_goals DESC, ps.shooting_goals_penalty DESC"
-    else:  # assists
+    # 정렬 기준 결정
+    if category == "assists":
         order_by = "ps.passing_assists DESC"
+    else:  # top-scorers
+        order_by = "ps.shooting_goals DESC"
 
+    # 선수 랭킹 쿼리
     sql = f"""
-        SELECT 
-            p.id AS player_id,
-            CASE WHEN :locale = 'ko-KR' THEN p.display_name_kr ELSE p.display_name_en END AS name,
-            ps.team_id,
-            ps.shooting_goals AS goals,
-            ps.passing_assists AS assists,
-            NULL AS rating
-        FROM player_stats ps
-        JOIN players p ON ps.player_id = p.id
-        WHERE ps.season_id = :season_id
-        ORDER BY {order_by}
+        SELECT * FROM (
+            SELECT
+                p.id AS player_id,
+                CASE WHEN :locale = 'ko-KR' THEN p.display_name_kr ELSE p.display_name_en END AS name,
+                ps.team_id,
+                ps.shooting_goals AS goals,
+                ps.passing_assists AS assists,
+                ROW_NUMBER() OVER (ORDER BY {order_by}) AS ranking
+            FROM player_stats ps
+            JOIN players p ON ps.player_id = p.id
+            WHERE ps.season_id = :season_id
+        ) ranked
         LIMIT :limit
     """
 
@@ -69,7 +71,7 @@ def get_player_rankings(
             "teamId": row._mapping["team_id"],
             "goals": row._mapping["goals"],
             "assists": row._mapping["assists"],
-            "rating": row._mapping["rating"]
+            "ranking": row._mapping["ranking"]
         })
 
     return {
@@ -78,7 +80,7 @@ def get_player_rankings(
             "leagueId": competition_id,
             "season": season_id,
             "category": category,
-            "source": "player_stats",
-            "locale": locale
+            "source": "player_stats_table",
+            "lastUpdated": int(datetime.now().timestamp())
         }
     }
