@@ -18,7 +18,7 @@ def get_teams(
     leagueId: str,
     season: Optional[str] = Query(None, description="If no season is provided, the default value is the latest season"),
     locale: Optional[str] = Query("en-US", description="support only ko-KR, en-US"),
-    search: Optional[str] = Query(None),
+    search: Optional[str] = Query(None, description="search option: city, name, shortName"),
     db: Session = Depends(get_db),
 ):
     ## 리그 정보 조회
