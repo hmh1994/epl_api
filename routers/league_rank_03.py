@@ -42,7 +42,7 @@ def get_league_standings(
         SELECT team_id
         FROM team_stats
         WHERE season_id = :season_id
-        ORDER BY overall_points DESC, overall_goals_difference, DESC
+        ORDER BY overall_points DESC, overall_goals_difference DESC
     """)
     #85c2b6fa-88ae-4ba2-b8bd-00b309f4f70c
 
