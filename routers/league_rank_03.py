@@ -116,13 +116,12 @@ def get_league_standings(
             }
 
         result.append(team_entry)
-        
+
     return {
         "leagueStandingsRow": result,
         "meta": {
             "leagueId": competition_id,
             "leagueName": leagueId,
             "season": season_id,
-            "lastUpdated": int(datetime.now().timestamp())
         }
     }
