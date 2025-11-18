@@ -80,7 +80,5 @@ def get_player_rankings(
             "leagueId": competition_id,
             "season": season_id,
             "category": category,
-            "source": "player_stats_table",
-            "lastUpdated": int(datetime.now().timestamp())
         }
     }
