@@ -48,13 +48,71 @@ def get_league_standings(
 
     team_rows = db.execute(sql_team_ids, {"season_id": season_id}).fetchall()
     team_ids = [row.team_id for row in team_rows]    
+    
+    result = []
+    for rank, team_id in enumerate(team_ids, start=1):
+        # 기본 팀 + 기록 정보 조회
+        sql = text("""
+            SELECT 
+                t.id,
+                t.name_en,
+                t.name_kr,
+                t.short_name_en,
+                t.short_name_kr,
+                g.name_en AS stadium_en,
+                g.name_kr AS stadium_kr,
+                g.city_name_en AS city_en,
+                g.city_name_kr AS city_kr,
+                ts.overall_matches,
+                ts.overall_matches_won,
+                ts.overall_matches_drawn,
+                ts.overall_matches_lost,
+                ts.overall_goals_for,
+                ts.overall_goals_against,
+                ts.overall_goals_difference,
+                ts.overall_points
+            FROM team_stats ts
+            JOIN teams t ON ts.team_id = t.id
+            LEFT JOIN grounds g ON ts.ground_id = g.id
+            WHERE ts.team_id = :team_id AND ts.season_id = :season_id
+            LIMIT 1
+        """)
+        row = db.execute(sql, {"team_id": team_id, "season_id": season_id}).fetchone()
+        if not row:
+            continue
 
-
-    return { 
-        "leagueStandingsRow" : team_ids,
-        "meta": {
-            "leagueId": competition_id,
-            "leagueName": leagueId,
-            "season": season_id,
+        team_summary = {
+            "id": row._mapping["id"],
+            "name": row._mapping["name_en"] if locale == "en-US" else row._mapping["name_kr"],
+            "shortName": row._mapping["short_name_en"] if locale == "en-US" else row._mapping["short_name_kr"],
+            "city": row._mapping["city_en"] if locale == "en-US" else row._mapping["city_kr"],
+            "stadium": row._mapping["stadium_en"] if locale == "en-US" else row._mapping["stadium_kr"],
         }
-    }
+
+        record = {
+            "rank": rank,
+            "played": row._mapping["overall_matches"],
+            "won": row._mapping["overall_matches_won"],
+            "drawn": row._mapping["overall_matches_drawn"],
+            "lost": row._mapping["overall_matches_lost"],
+            "goalsFor": row._mapping["overall_goals_for"],
+            "goalsAgainst": row._mapping["overall_goals_against"],
+            "goalDifference": row._mapping["overall_goals_difference"],
+            "points": row._mapping["overall_points"]
+        }
+
+        team_entry = {"teamSummary": team_summary, "record": record}
+
+        if includeAdvanced:
+            # advancedMetrics placeholder
+            team_entry["advancedMetrics"] = {
+                "xG": None,
+                "xGA": None,
+                "possession": None,
+                "passAccuracy": None,
+                "cleanSheets": None,
+                "bigChances": None,
+                "marketValue": None
+            }
+
+        result.append(team_entry)
