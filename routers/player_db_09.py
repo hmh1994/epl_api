@@ -42,7 +42,7 @@ def get_player_database(
             return {"error": "No season data found"}
 
     ## 시즌 정보로 조회되는 team_id 추출
-     sql_team_ids = text("""
+    sql_team_ids = text("""
         SELECT team_id
         FROM team_stats
         WHERE season_id = :season_id
