@@ -14,7 +14,7 @@ app = FastAPI(title="Football Data API", version="1.0",)
 
 app.include_router(Router1)
 app.include_router(Router2)
-#app.include_router(Router3)
+app.include_router(Router3)
 #app.include_router(Router4)
 #app.include_router(Router5)
 #app.include_router(Router6)
