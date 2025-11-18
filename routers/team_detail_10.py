@@ -46,13 +46,131 @@ def get_team_profiles(
 
     team_rows = db.execute(sql_team_ids, {"season_id": season_id}).fetchall()
     team_ids = [row.team_id for row in team_rows]
+    if not team_ids:
+        return {
+            "teams": [],
+            "meta": {
+                "season": season_id,
+                "leagueId": competition_id,
+                "leagueName": leagueId,
+                "lastUpdated": int(datetime.now().timestamp())
+            }
+        }
+        
+    teams = []
 
+    ## 각 team_id 기준으로 TeamProfile 생성
+    for team_id in team_ids:
+
+        ### 1) 팀 기본 정보
+        sql_team = text("""
+            SELECT id, name_en, name_kr, short_name_en, short_name_kr, icon_url, founded_year
+            FROM teams
+            WHERE id = :team_id
+        """)
+        team_row = db.execute(sql_team, {"team_id": team_id}).fetchone()
+        if not team_row:
+            continue
+
+        team_profile = dict(team_row._mapping)
+
+        ### 2) 구장 정보
+        sql_ground = text("""
+            SELECT g.name_en as ground_name_en, g.name_kr as ground_name_kr, g.capacity
+            FROM grounds g
+            JOIN team_stats ts ON g.id = ts.ground_id
+            WHERE ts.season_id = :season_id AND ts.team_id = :team_id
+            LIMIT 1
+        """)
+        ground_row = db.execute(sql_ground, {"season_id": season_id, "team_id": team_id}).fetchone()
+        team_profile["ground_name_en"] = ground_row._mapping["ground_name_en"] if ground_row else None
+        team_profile["ground_name_kr"] = ground_row._mapping["ground_name_kr"] if ground_row else None
+        team_profile["ground_capacity"] = ground_row._mapping["capacity"] if ground_row else None
+
+        ### 3) 순위 정보
+        sql_rank = text("""
+            SELECT rank
+            FROM (
+                SELECT 
+                    team_id,
+                    ROW_NUMBER() OVER (
+                        ORDER BY overall_points DESC, overall_goals_difference DESC
+                    ) AS rank
+                FROM team_stats
+                WHERE season_id = :season_id
+            ) ranked
+            WHERE team_id = :team_id
+            LIMIT 1
+        """)
+        rank_row = db.execute(sql_rank, {"season_id": season_id, "team_id": team_id}).fetchone()
+        team_profile["rank"] = rank_row._mapping["rank"] if rank_row else None
+
+        ### 4) 시즌 통계
+        sql_stats = text("""
+            SELECT 
+                (SELECT display_name_en FROM staffs WHERE id = ts.manager_id) AS manager_en,
+                (SELECT display_name_kr FROM staffs WHERE id = ts.manager_id) AS manager_kr,
+                ts.overall_points,
+                ts.overall_matches,
+                ts.overall_matches_won,
+                ts.overall_matches_drawn,
+                ts.overall_matches_lost,
+                ts.overall_goals_for,
+                ts.overall_goals_against
+            FROM team_stats ts
+            WHERE ts.season_id = :season_id AND ts.team_id = :team_id
+            LIMIT 1
+        """)
+        stats_row = db.execute(sql_stats, {"season_id": season_id, "team_id": team_id}).fetchone()
+        if stats_row:
+            team_profile.update(dict(stats_row._mapping))
+        else:
+            team_profile.update({
+                "manager_en": None,
+                "manager_kr": None,
+                "overall_points": None,
+                "overall_matches": None,
+                "overall_matches_won": None,
+                "overall_matches_drawn": None,
+                "overall_matches_lost": None,
+                "overall_goals_for": None,
+                "overall_goals_against": None,
+            })
+
+        ### key mapping (TeamSquadResponse에서 사용한 것 그대로)
+        team_key_map = {
+            "id": "id",
+            "name_en": "nameEn",
+            "name_kr": "nameKr",
+            "short_name_en": "shortNameEn",
+            "short_name_kr": "shortNameKr",
+            "icon_url": "logo",
+            "founded_year": "founded",
+            "ground_name_en": "stadiumEn",
+            "ground_name_kr": "stadiumKr",
+            "ground_capacity": "capacity",
+            "rank": "rank",
+            "manager_en": "managerEn",
+            "manager_kr": "managerKr",
+            "overall_points": "points",
+            "overall_matches": "played",
+            "overall_matches_won": "won",
+            "overall_matches_drawn": "drawn",
+            "overall_matches_lost": "lost",
+            "overall_goals_for": "goalsFor",
+            "overall_goals_against": "goalsAgainst"
+        }
+
+        mapped_profile = {team_key_map.get(k, k): v for k, v in team_profile.items()}
+        teams.append(mapped_profile)
 
     return {
+        "teams": teams,
         "meta": {
             "season": season_id,
             "leagueId": competition_id,
-            "leagueName": leagueId
+            "leagueName": leagueId,
+            "lastUpdated": int(datetime.now().timestamp())
         }
     }
 
