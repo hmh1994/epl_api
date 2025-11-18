@@ -198,7 +198,6 @@ def get_player_database(
         "meta": {
             "season": season_id,
             "leagueId": competition_id,
-            "leagueName": leagueId,
-            "lastUpdated": int(datetime.now().timestamp())
+            "leagueName": leagueId
         }
     }
