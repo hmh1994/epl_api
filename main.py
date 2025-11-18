@@ -9,6 +9,7 @@ from routers.schedule_07 import router as Router7
 from routers.match_detail_08 import router as Router8
 from routers.player_db_09 import router as Router9
 from routers.team_detail_10 import router as Router10
+from api.api_database import router as database_router
 
 app = FastAPI(title="Football Data API", version="1.0",)
 
@@ -22,4 +23,4 @@ app.include_router(Router6)
 #app.include_router(Router8)
 app.include_router(Router9)
 app.include_router(Router10)
-
+app.include_router(database_router)
