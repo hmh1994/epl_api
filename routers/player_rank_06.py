@@ -6,7 +6,7 @@ from database import get_db
 from utils.leagues_util import get_competition_id
 from utils.seasons_util import web_to_db_season, get_season_id_by_abbr, get_current_or_latest_season_id
 
-router = APIRouter(prefix="/api/v1", tags=["player_rankings_12"])
+router = APIRouter(prefix="/api/v1", tags=["player_rankings_06"])
 
 @router.get("/leagues/{leagueId}/player-rankings")
 def get_player_rankings(
@@ -35,9 +35,9 @@ def get_player_rankings(
 
     # 정렬 기준 결정
     if category == "assists":
-        order_by = "ps.passing_assists DESC"
+        order_by = "COALESCE(ps.passing_assists::int, 0) DESC"
     else:  # top-scorers
-        order_by = "ps.shooting_goals DESC"
+        order_by = "COALESCE(ps.shooting_goals::int, 0) DESC"
 
     # 선수 랭킹 쿼리
     sql = f"""
@@ -46,8 +46,8 @@ def get_player_rankings(
                 p.id AS player_id,
                 CASE WHEN :locale = 'ko-KR' THEN p.display_name_kr ELSE p.display_name_en END AS name,
                 ps.team_id,
-                ps.shooting_goals AS goals,
-                ps.passing_assists AS assists,
+                COALESCE(ps.shooting_goals::int, 0) AS goals,
+                COALESCE(ps.passing_assists::int, 0) AS assists,
                 ROW_NUMBER() OVER (ORDER BY {order_by}) AS ranking
             FROM player_stats ps
             JOIN players p ON ps.player_id = p.id
