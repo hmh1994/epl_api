@@ -56,17 +56,7 @@ def get_teams(
     """
 
     params = {"season_id": season_id}
-'''
-    if competition_id:
-        sql += " AND ts.competition_id = :competition_id"
-        params["competition_id"] = competition_id
 
-    if search:
-        sql += " AND (t.name_en ILIKE :search OR t.name_kr ILIKE :search OR t.short_name_en ILIKE :search OR t.short_name_kr ILIKE :search OR g.city_name_en ILIKE :search OR g.city_name_kr ILIKE :search)"
-        params["search"] = f"%{search}%"
-
-    sql += " ORDER BY t.name_en"
-'''
     rows = db.execute(text(sql), params).fetchall()
 
     teams = []
@@ -89,3 +79,16 @@ def get_teams(
             "total": len(teams),
         }
     }
+
+
+'''
+    if competition_id:
+        sql += " AND ts.competition_id = :competition_id"
+        params["competition_id"] = competition_id
+
+    if search:
+        sql += " AND (t.name_en ILIKE :search OR t.name_kr ILIKE :search OR t.short_name_en ILIKE :search OR t.short_name_kr ILIKE :search OR g.city_name_en ILIKE :search OR g.city_name_kr ILIKE :search)"
+        params["search"] = f"%{search}%"
+
+    sql += " ORDER BY t.name_en"
+'''
