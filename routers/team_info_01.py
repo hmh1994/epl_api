@@ -21,7 +21,7 @@ def get_teams(
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-     # 리그 정보 조회 (optional)
+    # 리그 정보 조회 (optional)
     competition_id = None
     if leagueId:
         competition_id, error = get_competition_id(db, leagueId)
@@ -51,22 +51,18 @@ def get_teams(
             g.name_kr AS stadium_kr,
             g.city_name_en AS city_en,
             g.city_name_kr AS city_kr
-        FROM teams t
-        LEFT JOIN team_stats ts
-            ON t.id = ts.team_id AND ts.season_id = :season_id
-        LEFT JOIN grounds g
-            ON ts.ground_id = g.id
-        WHERE 1=1
+        FROM team_stats ts
+        JOIN teams t ON ts.team_id = t.id
+        LEFT JOIN grounds g ON ts.ground_id = g.id
+        WHERE ts.season_id = :season_id
     """
 
     params = {"season_id": season_id}
 
-    # leagueId 필터
     if competition_id:
-        sql += " AND t.competition_id = :competition_id"
+        sql += " AND ts.competition_id = :competition_id"
         params["competition_id"] = competition_id
 
-    # search 필터 (팀명/약어/도시)
     if search:
         sql += " AND (t.name_en ILIKE :search OR t.name_kr ILIKE :search OR t.short_name_en ILIKE :search OR t.short_name_kr ILIKE :search OR g.city_name_en ILIKE :search OR g.city_name_kr ILIKE :search)"
         params["search"] = f"%{search}%"
