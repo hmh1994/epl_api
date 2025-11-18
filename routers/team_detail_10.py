@@ -56,7 +56,7 @@ def get_team_profiles(
                 "lastUpdated": int(datetime.now().timestamp())
             }
         }
-        
+
     teams = []
 
     ## 각 team_id 기준으로 TeamProfile 생성
@@ -169,8 +169,7 @@ def get_team_profiles(
         "meta": {
             "season": season_id,
             "leagueId": competition_id,
-            "leagueName": leagueId,
-            "lastUpdated": int(datetime.now().timestamp())
+            "leagueName": leagueId
         }
     }
 
