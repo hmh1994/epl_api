@@ -36,8 +36,31 @@ def get_league_metadata(
         if not season_id:
             return {"error": "No season data found"}
 
+    ## LeagueSummary
+    sql = """
+        select 
+            name_en,
+            name_kr,
+            icon_url
+        from competitions
+        where id = :competition_id
+    """
+    params = {"competition_id": competition_id}
+    row = db.execute(text(sql), params).fetchone()
+
+    if row:
+        name_key = "name_en" if locale == "en-US" else "name_kr"
+        summary = {
+            "name": row._mapping[name_key],
+            "logo": row._mapping["icon_url"]
+        }
+    else:
+        summary = {
+            "name": None,
+            "logo": None
+        }
     return {
-        "summary": [],
+        "summary": summary,
         "champions": [],
         "successfulClubs": [],
         "meta": {
