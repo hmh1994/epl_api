@@ -21,14 +21,12 @@ def get_teams(
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    # 리그 정보 조회 (optional)
     competition_id = None
     if leagueId:
         competition_id, error = get_competition_id(db, leagueId)
         if error:
             return {"error": error}
 
-    # 시즌 정보 조회
     if season:
         season_db = web_to_db_season(season)
         season_id = get_season_id_by_abbr(db, competition_id, season_db)
@@ -58,7 +56,7 @@ def get_teams(
     """
 
     params = {"season_id": season_id}
-
+'''
     if competition_id:
         sql += " AND ts.competition_id = :competition_id"
         params["competition_id"] = competition_id
@@ -68,7 +66,7 @@ def get_teams(
         params["search"] = f"%{search}%"
 
     sql += " ORDER BY t.name_en"
-
+'''
     rows = db.execute(text(sql), params).fetchall()
 
     teams = []
