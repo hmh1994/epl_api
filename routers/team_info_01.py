@@ -13,21 +13,21 @@ from utils.seasons_util import (
 
 router = APIRouter(prefix="/api/v1", tags=["team_info_01"])
 
-@router.get("/teams")
+@router.get("/leagues/{leagueId}/teams")
 def get_teams(
-    season: Optional[str] = Query(None, description = "If no season is provided, the default value is the latest season"),
-    locale: Optional[str] = Query("en-US", description = "support only ko-KR, en-US"),
-    leagueId: Optional[str] = Query(None),
+    leagueId: str,
+    season: Optional[str] = Query(None, description="If no season is provided, the default value is the latest season"),
+    locale: Optional[str] = Query("en-US", description="support only ko-KR, en-US"),
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    competition_id = None
-    if leagueId:
-        competition_id, error = get_competition_id(db, leagueId)
-        if error:
-            return {"error": error}
+    ## 리그 정보 조회
+    competition_id, error = get_competition_id(db, leagueId)
+    if error:
+        return {"error": error}
 
-    if season:
+    ## 시즌 정보 조회
+    if season:  
         season_db = web_to_db_season(season)
         season_id = get_season_id_by_abbr(db, competition_id, season_db)
         if not season_id:
@@ -57,16 +57,35 @@ def get_teams(
 
     params = {"season_id": season_id}
 
+    # search 조건 추가
+    if search:
+        sql += """
+        AND (
+            t.name_en ILIKE :search OR t.name_kr ILIKE :search OR
+            t.short_name_en ILIKE :search OR t.short_name_kr ILIKE :search OR
+            g.city_name_en ILIKE :search OR g.city_name_kr ILIKE :search
+        )
+        """
+        params["search"] = f"%{search}%"
+
+    sql += " ORDER BY t.name_en"
+
     rows = db.execute(text(sql), params).fetchall()
 
     teams = []
     for row in rows:
+        # locale에 따라 이름 선택
+        name_key = "name_en" if locale == "en-US" else "name_kr"
+        short_name_key = "short_name_en" if locale == "en-US" else "short_name_kr"
+        city_key = "city_en" if locale == "en-US" else "city_kr"
+        stadium_key = "stadium_en" if locale == "en-US" else "stadium_kr"
+
         teams.append({
             "id": row._mapping["id"],
-            "name": {"en": row._mapping["name_en"], "kr": row._mapping["name_kr"]},
-            "shortName": {"en": row._mapping["short_name_en"], "kr": row._mapping["short_name_kr"]},
-            "city": {"en": row._mapping["city_en"], "kr": row._mapping["city_kr"]} if row._mapping["city_en"] or row._mapping["city_kr"] else None,
-            "stadium": {"en": row._mapping["stadium_en"], "kr": row._mapping["stadium_kr"]} if row._mapping["stadium_en"] or row._mapping["stadium_kr"] else None
+            "name": row._mapping[name_key],
+            "shortName": row._mapping[short_name_key],
+            "city": row._mapping[city_key] if row._mapping[city_key] else None,
+            "stadium": row._mapping[stadium_key] if row._mapping[stadium_key] else None
         })
 
     return {
@@ -79,16 +98,3 @@ def get_teams(
             "total": len(teams),
         }
     }
-
-
-'''
-    if competition_id:
-        sql += " AND ts.competition_id = :competition_id"
-        params["competition_id"] = competition_id
-
-    if search:
-        sql += " AND (t.name_en ILIKE :search OR t.name_kr ILIKE :search OR t.short_name_en ILIKE :search OR t.short_name_kr ILIKE :search OR g.city_name_en ILIKE :search OR g.city_name_kr ILIKE :search)"
-        params["search"] = f"%{search}%"
-
-    sql += " ORDER BY t.name_en"
-'''
