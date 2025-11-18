@@ -16,8 +16,8 @@ router = APIRouter(prefix="/api/v1", tags=["league_pulse_05"])
 @router.get("/leagues/{leagueId}/meta")
 def get_league_meta(
     leagueId: str,
-    season: Optional[str] = Query(None),
-    locale: Optional[str] = Query("ko-KR"),
+    season: Optional[str] = Query(None, description="If no season is provided, the default value is the latest season"),
+    locale: Optional[str] = Query("en-US", description="support only ko-KR, en-US"),
     db: Session = Depends(get_db),
 ):
     ## 리그 정보 조회
