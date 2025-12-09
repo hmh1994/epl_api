@@ -115,13 +115,13 @@ def fetch_team_detail(
     sql_squad = text("""
         SELECT 
             p.id AS player_id,
+            ps.number,
             p.display_name_en,
             p.display_name_kr,
+            p.position,
             EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.birth_date)) AS age,
             p.nationality_en,
             p.nationality_kr,
-            p.position,
-            ps.number,
             ps.shooting_goals,
             ps.passing_assists,
             ps.appearances
@@ -134,10 +134,25 @@ def fetch_team_detail(
     squad_rows = db.execute(sql_squad, {"team_id": teamId, "season_id": season_id}).fetchall()
     squad = []
     for row in squad_rows:
+        squad.append({
+            "id":row.player_id,
+            "number":row.number,
+            "name":row.display_name_en if locale == "en-US" else row.display_name_kr,
+            "position":row.postition,
+            "age":row.age,
+            "nationality":row.nationality_en if locale == "en-US" else row.nationality_kr,
+            "teamId":teamId,
+            "rating":None,
+            "goals":row.shooting_goals,
+            "assists":row.passing_assists,
+            "appearances":row.appearances,
+        })
+        '''
         player = dict(row._mapping)
         player["shooting_goals"] = player["shooting_goals"] or 0
         player["passing_assists"] = player["passing_assists"] or 0
         squad.append(player)
+        '''
 
     ### 추후 공용 모델로 변경 예정
     team_key_map = {
@@ -186,7 +201,7 @@ def fetch_team_detail(
     
     return {
         "data": team_profile_mapped,
-        "squad": squad_mapped,
+        "squad": squad,
         "meta": {
             "season": season_id,
             "leagueId": competition_id,
