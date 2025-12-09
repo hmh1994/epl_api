@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import Optional
+from datetime import datetime, timedelta, timezone
 from database import get_db
 
 from utils.leagues_util import LEAGUE_ENUM_MAP, get_competition_id
@@ -109,9 +110,26 @@ def fetch_team_detail(
             "overall_goals_for": None,
             "overall_goals_against": None,
         })
-
-    ## PlayerProfile
-    ### 1
+    
+    team_profile_localized = {
+        "id": team_profile["id"],
+        "name": team_profile["name_en"] if locale == "en-US" else team_profile["name_kr"],
+        "shortName": team_profile["short_name_en"] if locale == "en-US" else team_profile["short_name_kr"],
+        "logo": team_profile["icon_url"],
+        "founded": team_profile["founded_year"],
+        "stadium": team_profile["ground_name_en"] if locale == "en-US" else team_profile["ground_name_kr"],
+        "capacity": team_profile["capacity"],
+        "rank": team_profile["rank"],
+        "manager": team_profile["manager_en"] if locale == "en-US" else team_profile["manager_kr"],
+        "points": team_profile.get("overall_points"),
+        "played": team_profile.get("overall_matches"),
+        "won": team_profile.get("overall_matches_won"),
+        "drawn": team_profile.get("overall_matches_drawn"),
+        "lost": team_profile.get("overall_matches_lost"),
+        "goalsFor": team_profile.get("overall_goals_for"),
+        "goalsAgainst": team_profile.get("overall_goals_against"),
+    }
+    ## teamSquad
     sql_squad = text("""
         SELECT 
             p.id AS player_id,
@@ -147,13 +165,8 @@ def fetch_team_detail(
             "assists":row.passing_assists,
             "appearances":row.appearances,
         })
-        '''
-        player = dict(row._mapping)
-        player["shooting_goals"] = player["shooting_goals"] or 0
-        player["passing_assists"] = player["passing_assists"] or 0
-        squad.append(player)
-        '''
 
+'''
     ### 추후 공용 모델로 변경 예정
     team_key_map = {
         "id": "id",
@@ -178,35 +191,20 @@ def fetch_team_detail(
         "overall_goals_against": "goalsAgainst"
     }
     team_profile_mapped = {team_key_map.get(k, k): v for k, v in team_profile.items()}
-
-    player_key_map = {
-        "player_id": "id",
-        "number": "number",
-        "display_name_en": "nameEn",
-        "display_name_kr": "nameKr",
-        "age": "age",
-        "nationality_en": "nationalityEn",
-        "nationality_kr": "nationalityKr",
-        "position": "position",
-        
-        "shooting_goals": "goals",
-        "passing_assists": "assists",
-        "appearances": "appearances"
-    }
-
-    squad_mapped = [
-        {player_key_map.get(k, k): v for k, v in player.items()} for player in squad
-    ]
-
-    
+'''
+    KST = timezone(timedelta(hours=9))
+    #last_updated = datetime.now(KST).isoformat()
+    last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
     return {
-        "data": team_profile_mapped,
+        "data": team_profile_localized,
         "squad": squad,
         "meta": {
             "season": season_id,
             "leagueId": competition_id,
             "leagueName": leagueName,
             "teamId": teamId,
+            "lastUpdated" : last_updated,
+            "locale" : locale
         }
     }
 
