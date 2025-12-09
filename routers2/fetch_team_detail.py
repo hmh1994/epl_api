@@ -170,8 +170,10 @@ def fetch_team_detail(
     #last_updated = datetime.now(KST).isoformat()
     last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
     return {
-        "data": team_profile_localized,
-        "squad": squad,
+        "data": {
+        **team_profile_localized,
+        "squad": squad
+        },
         "meta": {
             "season": season_id,
             "leagueId": competition_id,
