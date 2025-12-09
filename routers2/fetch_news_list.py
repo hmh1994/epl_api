@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from database import get_db
 
 router = APIRouter(prefix="/api/v1", tags=["fetch_news_list"])
@@ -46,11 +46,10 @@ def fetch_news_list(
             "author": r.author_kr if locale == "ko-KR" else r.author_en,
             "source": r.source,
             "url": r.url,
-        })
-    
-    
+        })   
 
-    last_updated = datetime.utcnow().isoformat()
+    KST = timezone(timedelta(hours=9))
+    last_updated = datetime.now(KST).isoformat()
 
     return {
         "news": news_list,
@@ -58,8 +57,7 @@ def fetch_news_list(
             "locale": locale,
             "lastUpdated": last_updated,
             "pagination": {
-                "total": total,
-                "limit": limit
+                "total": limit
             }
         }
     }
