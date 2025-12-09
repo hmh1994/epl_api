@@ -17,6 +17,39 @@ router = APIRouter(prefix="/api/v1", tags=["fetch_player_detail"])
 @router.get("/leagues/{leagueName}/player/{playerId}")
 def fetch_player_detail(
     leagueName: str,
+    playerId: str,
+    season: Optional[str] = Query(None, description="If no season is provided, the default value is the latest season"),
+    locale: Optional[str] = Query("en-US", description="support only ko-KR, en-US"),
+    db: Session = Depends(get_db),
 ): 
-    return 0
-    
+    ## 리그 정보 조회
+    competition_id, error = get_competition_id(db, leagueName)
+    if error:
+        return {"error": error}
+
+    ## 시즌 정보 조회
+    if season:  
+        season_db = web_to_db_season(season)
+        season_id = get_season_id_by_abbr(db, competition_id, season_db)
+        if not season_id:
+            return {"error": f"Season not found: {season}"}
+    else:
+        season_id = get_current_or_latest_season_id(db, competition_id)
+        if not season_id:
+            return {"error": "No season data found"}
+
+    field = []
+
+    KST = timezone(timedelta(hours=9))
+    #last_updated = datetime.now(KST).isoformat()
+    last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
+    return {
+        "data" : field
+        "meta" : {
+            "leagueName": leagueName,
+            "leagueId": competition_id,
+            "season" : season_id,
+            "lastUpdated" : last_updated,
+            "locale" : locale,
+        }
+    }
