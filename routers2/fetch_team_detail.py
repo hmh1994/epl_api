@@ -118,7 +118,7 @@ def fetch_team_detail(
         "logo": team_profile["icon_url"],
         "founded": team_profile["founded_year"],
         "stadium": team_profile["ground_name_en"] if locale == "en-US" else team_profile["ground_name_kr"],
-        "capacity": team_profile["capacity"],
+        "capacity": team_profile["ground_capacity"],
         "rank": team_profile["rank"],
         "manager": team_profile["manager_en"] if locale == "en-US" else team_profile["manager_kr"],
         "points": team_profile.get("overall_points"),
