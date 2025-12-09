@@ -189,7 +189,7 @@ def fetch_team_detail(
         "meta": {
             "season": season_id,
             "leagueId": competition_id,
-            "leagueName": leagueId,
+            "leagueName": leagueName,
             "teamId": teamId,
         }
     }
