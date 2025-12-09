@@ -27,6 +27,7 @@ def fetch_news_list(
             source,
             url
         FROM news
+        ORDER BY publish_date DESC
         LIMIT :limit
     """
     rows = db.execute(text(sql), {"limit": limit}).fetchall()
