@@ -41,6 +41,7 @@ def fetch_scoring_race(
     sql = f"""
         SELECT * FROM (
             SELECT
+                p.id,
                 CASE WHEN :locale = 'ko-KR' THEN p.display_name_kr ELSE p.display_name_en END AS name,
                 ps.team_id,
                 COALESCE(ps.shooting_goals::int, 0) AS goals,
@@ -64,6 +65,7 @@ def fetch_scoring_race(
     field = []
     for row in rows:
         field.append({
+            "playerId" : row._mapping["id"],
             "name": row._mapping["name"],
             "teamId": row._mapping["team_id"],
             "goals": row._mapping["goals"],
