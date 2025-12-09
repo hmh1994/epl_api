@@ -46,7 +46,7 @@ def fetch_scoring_race(
                 COALESCE(ps.shooting_goals::int, 0) AS goals,
                 COALESCE(ps.passing_assists::int, 0) AS assists,
                 p.photo_url,
-                ROW_NUMBER() OVER (ORDER BY COALESCE(ps.shooting_goals::int, 0) DESC) AS ranking
+                ROW_NUMBER() OVER (ORDER BY COALESCE(ps.shooting_goals::int, 0) DESC, COALESCE(ps.passing_assists::int, 0) DESC) AS ranking
             FROM player_stats ps
             JOIN players p ON ps.player_id = p.id
             WHERE ps.season_id = :season_id
