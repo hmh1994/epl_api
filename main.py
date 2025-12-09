@@ -1,4 +1,8 @@
 from fastapi import FastAPI
+
+from routers2.fetch_news_list import router as newsRouter
+
+
 from routers.team_info_01 import router as Router1
 from routers.league_meta_02 import router as Router2
 from routers.league_rank_03 import router as Router3
@@ -9,9 +13,13 @@ from routers.schedule_07 import router as Router7
 from routers.match_detail_08 import router as Router8
 from routers.player_db_09 import router as Router9
 from routers.team_detail_10 import router as Router10
+
+
 from api.api_database import router as database_router
 
 app = FastAPI(title="Football Data API", version="1.0",)
+
+app.include_router(newsRouter)
 
 app.include_router(Router1)
 app.include_router(Router2)
@@ -23,4 +31,5 @@ app.include_router(Router6)
 #app.include_router(Router8)
 app.include_router(Router9)
 app.include_router(Router10)
+
 app.include_router(database_router)
