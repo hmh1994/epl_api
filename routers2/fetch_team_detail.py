@@ -166,13 +166,14 @@ def fetch_team_detail(
 
     player_key_map = {
         "player_id": "id",
+        "number": "number",
         "display_name_en": "nameEn",
         "display_name_kr": "nameKr",
         "age": "age",
         "nationality_en": "nationalityEn",
         "nationality_kr": "nationalityKr",
         "position": "position",
-        "number": "number",
+        
         "shooting_goals": "goals",
         "passing_assists": "assists",
         "appearances": "appearances"
@@ -184,7 +185,7 @@ def fetch_team_detail(
 
     
     return {
-        "team": team_profile_mapped,
+        "data": team_profile_mapped,
         "squad": squad_mapped,
         "meta": {
             "season": season_id,
