@@ -49,7 +49,8 @@ def fetch_news_list(
         })   
 
     KST = timezone(timedelta(hours=9))
-    last_updated = datetime.now(KST).isoformat()
+    #last_updated = datetime.now(KST).isoformat()
+    last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
 
     return {
         "news": news_list,
