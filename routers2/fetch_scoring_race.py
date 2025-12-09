@@ -37,13 +37,47 @@ def fetch_scoring_race(
         season_id = get_current_or_latest_season_id(db, competition_id)
         if not season_id:
             return {"error": "No season data found"}
+    
+    sql = f"""
+        SELECT * FROM (
+            SELECT
+                CASE WHEN :locale = 'ko-KR' THEN p.display_name_kr ELSE p.display_name_en END AS name,
+                ps.team_id,
+                COALESCE(ps.shooting_goals::int, 0) AS goals,
+                COALESCE(ps.passing_assists::int, 0) AS assists,
+                p.photo_url,
+                ROW_NUMBER() OVER (ORDER BY COALESCE(ps.shooting_goals::int, 0) DESC) AS ranking
+            FROM player_stats ps
+            JOIN players p ON ps.player_id = p.id
+            WHERE ps.season_id = :season_id
+        ) ranked
+        LIMIT :limit
+    """
+    params = {
+        "season_id": season_id,
+        "limit": limit,
+        "locale": locale
+    }
 
+    rows = db.execute(text(sql), params).fetchall()
+
+    field = []
+    for row in rows:
+        field.append({
+            "name": row._mapping["name"],
+            "teamId": row._mapping["team_id"],
+            "goals": row._mapping["goals"],
+            "assists": row._mapping["assists"],
+            "photo": row._mapping["photo_url"],
+            "ranking": row._mapping["ranking"]
+        })
 
     return {
         "meta" : {
             "leagueName": leagueName,
             "leagueId": competition_id,
             "season" : season_id,
-            "locale" : locale
+            "locale" : locale,
+            "category" : "goal"
         }
     }
