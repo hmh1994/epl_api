@@ -73,6 +73,7 @@ def fetch_scoring_race(
         })
 
     return {
+        "data" : field,
         "meta" : {
             "leagueName": leagueName,
             "leagueId": competition_id,
