@@ -122,9 +122,9 @@ def fetch_team_detail(
             EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.birth_date)) AS age,
             p.nationality_en,
             p.nationality_kr,
-            ps.shooting_goals,
-            ps.passing_assists,
-            ps.appearances
+            COALESCE(ps.shooting_goals, 0) AS shooting_goals,
+            COALESCE(ps.passing_assists, 0) AS passing_assists,
+            COALESCE(ps.appearances, 0) AS appearances
         FROM players p
         JOIN player_stats ps
             ON p.id = ps.player_id
