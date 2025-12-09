@@ -101,7 +101,7 @@ def fetch_premium_table(
     last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
 
     return {
-        "data" : field
+        "data" : field,
         "meta": {
             "leagueName": leagueName,
             "leagueId": competition_id,
