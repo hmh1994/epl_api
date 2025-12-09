@@ -72,6 +72,13 @@ def fetch_premium_table(
 
     field = []
     for row in rows:
+        if row.overall_stat_attack_passes and row.overall_stat_attack_passes > 0:
+            pass_accuracy = round(
+                row.overall_stat_attack_passes_successful / row.overall_stat_attack_passes,
+                2
+            )
+        else:
+            pass_accuracy = 0.0
         field.append({
             "id" : row.id,
             "name" : row.name_en if locale == "en-US" else row.name_kr,
@@ -91,7 +98,7 @@ def fetch_premium_table(
             "xG" : row.overall_stat_attack_expected_goals,
             "xGA" : row.overall_stat_attack_expected_assists,
             "possession" : row.overall_stat_average_possession,
-            "passAccuracy" : row.overall_stat_attack_passes_successful,
+            "passAccuracy" : pass_accuracy,
             "cleanSheets" : row.overall_stat_defense_clean_sheets 
         })
 
