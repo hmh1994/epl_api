@@ -59,7 +59,7 @@ def fetch_premium_table(
 
             ts.overall_stat_attack_expected_goals,
             ts.overall_stat_attack_expected_assists,
-            ts.overall_stat_average_posession,
+            ts.overall_stat_average_possession,
             ts.overall_stat_attack_passes_successful,
             ts.overall_stat_attack_passes,
             ts.overall_stat_defense_clean_sheets
@@ -90,7 +90,7 @@ def fetch_premium_table(
             "trend" : None,
             "xG" : row.overall_stat_attack_expected_goals,
             "xGA" : row.overall_stat_attack_expected_assists,
-            "possession" : row.overall_stat_average_posession,
+            "possession" : row.overall_stat_average_possession,
             "passAccuracy" : row.overall_stat_attack_passes_successful,
             "cleanSheets" : row.overall_stat_defense_clean_sheets 
         })
