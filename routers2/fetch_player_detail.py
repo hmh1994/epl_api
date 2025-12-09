@@ -44,7 +44,7 @@ def fetch_player_detail(
     #last_updated = datetime.now(KST).isoformat()
     last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
     return {
-        "data" : field
+        "data" : field,
         "meta" : {
             "leagueName": leagueName,
             "leagueId": competition_id,
