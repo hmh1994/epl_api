@@ -138,7 +138,7 @@ def fetch_team_detail(
             "id":row.player_id,
             "number":row.number,
             "name":row.display_name_en if locale == "en-US" else row.display_name_kr,
-            "position":row.postition,
+            "position":row.position,
             "age":row.age,
             "nationality":row.nationality_en if locale == "en-US" else row.nationality_kr,
             "teamId":teamId,
