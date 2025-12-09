@@ -38,7 +38,7 @@ def fetch_player_detail(
         if not season_id:
             return {"error": "No season data found"}
 
-    sql = f"""
+    sql = """
         SELECT 
             p.id,
             p.display_name_en,
@@ -52,7 +52,8 @@ def fetch_player_detail(
             p.height,
             p.weight,
             ps.shooting_goals,
-            ps.passing_assists
+            ps.passing_assists,
+            ps.appearances
         FROM players p
         JOIN player_stats ps ON p.id = ps.player_id
         WHERE ps.season_id = :season_id
@@ -62,16 +63,40 @@ def fetch_player_detail(
         "season_id": season_id,
         "player_id": playerId,
     }
-    
     rows = db.execute(text(sql), params).fetchall()
 
     field = []
+    for row in rows:
+        field.append({
+            "id" : row.id,
+            "name": row.display_name_en if locale == "en-US" else row.display_name_kr,
+            "teamId": row.team_id,
+            "position": row.position,
+            "photo":  row.photo_url,
+            "nationality": row.nationality_en if locale == "en-US" else row.nationality_kr,
+            "age": row.age,
+            "height": row.height,
+            "weight" : row.weight,
+            "pace" : None,
+            "shooting" : None,
+            "passing" :  None,
+            "dribbling" :  None,
+            "defending" : None,
+            "physical" : None,
+            "goals" : row.shooting_goals,
+            "assists" : row.passing_assists,
+            "pace2" : None,
+            "year" : season,
+            "teamId2" : row.team_id,
+            "matches" : row.appearances,
+            "goals2" : row.shooting_goals
+        })
 
     KST = timezone(timedelta(hours=9))
     #last_updated = datetime.now(KST).isoformat()
     last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
     return {
-        "data" : rows,
+        "data" : field,
         "meta" : {
             "leagueName": leagueName,
             "leagueId": competition_id,
