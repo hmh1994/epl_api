@@ -38,13 +38,40 @@ def fetch_player_detail(
         if not season_id:
             return {"error": "No season data found"}
 
+    sql = f"""
+        SELECT 
+            p.id,
+            p.display_name_en,
+            p.display_name_kr,
+            ps.team_id,
+            p.position,
+            p.photo_url,
+            p.nationality_en,
+            p.nationality_kr,
+            DATE_PART('year', AGE(CURRENT_DATE, p.birth_date)) AS age,
+            p.height,
+            p.weight,
+            ps.shooting_goals,
+            ps.passing_assists
+        FROM players p
+        JOIN player_stats ps ON p.id = ps.player_id
+        WHERE ps.season_id = :season_id
+        AND p.id = :player_id
+    """
+    params = {
+        "season_id": season_id,
+        "player_id": playerId,
+    }
+    
+    rows = db.execute(text(sql), params).fetchall()
+
     field = []
 
     KST = timezone(timedelta(hours=9))
     #last_updated = datetime.now(KST).isoformat()
     last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
     return {
-        "data" : field,
+        "data" : rows,
         "meta" : {
             "leagueName": leagueName,
             "leagueId": competition_id,

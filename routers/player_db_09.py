@@ -69,14 +69,14 @@ def get_player_database(
             p.id,
             p.display_name_en,
             p.display_name_kr,
-            p.photo_url,
+            ps.team_id,
             p.position,
-            DATE_PART('year', AGE(CURRENT_DATE, p.birth_date)) AS age,
+            p.photo_url,
             p.nationality_en,
             p.nationality_kr,
+            DATE_PART('year', AGE(CURRENT_DATE, p.birth_date)) AS age,
             p.height,
             p.weight,
-            ps.team_id,
             ps.shooting_goals,
             ps.passing_assists
         FROM players p
