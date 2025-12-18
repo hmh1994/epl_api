@@ -63,9 +63,39 @@ def fetch_player_detail(
         "season_id": season_id,
         "player_id": playerId,
     }
-    rows = db.execute(text(sql), params).fetchall()
+    rows = db.execute(text(sql), params).fetchone()
 
-    field = []
+    name = row.display_name_en if locale == "en-US" else row.display_name_kr
+    nationality = row.nationality_en if locale == "en-US" else row.nationality_kr
+
+    data = {
+        "summary": {
+            "id": row.id,
+            "name": name,
+            "teamId": row.team_id,
+            "position": row.position,
+            "photo": row.photo_url,
+            "nationality": nationality,
+            "age": row.age,
+            "height": row.height,
+            "weight": row.weight,
+        },
+        "attributes": {
+            "pace": None,
+            "shooting": None,
+            "passing": None,
+            "dribbling": None,
+            "defending": None,
+            "physical": None,
+        },
+        "performance": {
+            "goals": row.shooting_goals,
+            "assists": row.passing_assists,
+            "pace": None,
+            "matches": row.appearances,
+        }
+    }
+    '''field = []
     for row in rows:
         field.append({
             "id" : row.id,
@@ -91,12 +121,12 @@ def fetch_player_detail(
             "matches" : row.appearances,
             "goals2" : row.shooting_goals
         })
-
+    '''
     KST = timezone(timedelta(hours=9))
     #last_updated = datetime.now(KST).isoformat()
     last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
     return {
-        "data" : field,
+        "data" : data,
         "meta" : {
             "leagueName": leagueName,
             "leagueId": competition_id,

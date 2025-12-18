@@ -77,7 +77,7 @@ router = APIRouter(prefix="/api/v1", tags=["news"])
 @router.get("/news")
 def fetch_news_list(
     pageCnt: Optional[int] = Query(1, ge=1, description="Page number (start from 1)"),
-    pageSize: Optional[int] = Query(10, ge=1, le=30, description="Items per page"),
+    pageSize: Optional[int] = Query(10, ge=1, le=500, description="Items per page"),
     search: Optional[str] = Query(None, description="Search by title"),
     locale: Optional[str] = Query("en-US", description="support only ko-KR, en-US"),
     db: Session = Depends(get_db),
