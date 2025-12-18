@@ -46,7 +46,7 @@ def fetch_season_analytics(
             a.delta,
             a.description_en,
             a.description_kr
-        FROM season_analytics a
+        FROM analytics a
         WHERE a.season_id = :season_id
         ORDER BY a.id ASC
     """)
