@@ -63,7 +63,7 @@ def fetch_player_detail(
         "season_id": season_id,
         "player_id": playerId,
     }
-    rows = db.execute(text(sql), params).fetchone()
+    row = db.execute(text(sql), params).fetchone()
 
     name = row.display_name_en if locale == "en-US" else row.display_name_kr
     nationality = row.nationality_en if locale == "en-US" else row.nationality_kr
