@@ -16,6 +16,173 @@ router = APIRouter(prefix="/api/v1", tags=["fetch_team_detail"])
 def fetch_team_detail(
     leagueName: str,
     teamId: str,
+    season: Optional[str] = Query(None),
+    locale: Optional[str] = Query("en-US"),
+    db: Session = Depends(get_db),
+):
+    # 1. 리그
+    competition_id, error = get_competition_id(db, leagueName)
+    if error:
+        return {"error": error}
+
+    # 2. 시즌
+    if season:
+        season_db = web_to_db_season(season)
+        season_id = get_season_id_by_abbr(db, competition_id, season_db)
+        if not season_id:
+            return {"error": f"Season not found: {season}"}
+    else:
+        season_id = get_current_or_latest_season_id(db, competition_id)
+        if not season_id:
+            return {"error": "No season data found"}
+
+    # 3. 팀 기본 정보
+    team_row = db.execute(text("""
+        SELECT id, name_en, name_kr, short_name_en, short_name_kr,
+               icon_url, founded_year
+        FROM teams
+        WHERE id = :team_id
+    """), {"team_id": teamId}).fetchone()
+
+    if not team_row:
+        return {"error": "Team not found"}
+
+    # 4. 팀 시즌 통계
+    stats_row = db.execute(text("""
+        SELECT
+            ts.*,
+            g.name_en AS stadium_en,
+            g.name_kr AS stadium_kr,
+            g.capacity,
+            (SELECT display_name_en FROM staffs WHERE id = ts.manager_id) AS manager_en,
+            (SELECT display_name_kr FROM staffs WHERE id = ts.manager_id) AS manager_kr
+        FROM team_stats ts
+        LEFT JOIN grounds g ON ts.ground_id = g.id
+        WHERE ts.season_id = :season_id AND ts.team_id = :team_id
+        LIMIT 1
+    """), {"season_id": season_id, "team_id": teamId}).fetchone()
+
+    # 5. 리그 순위
+    rank_row = db.execute(text("""
+        SELECT rank FROM (
+            SELECT team_id,
+                   ROW_NUMBER() OVER (ORDER BY overall_points DESC, overall_goals_difference DESC) AS rank
+            FROM team_stats
+            WHERE season_id = :season_id
+        ) r WHERE team_id = :team_id
+    """), {"season_id": season_id, "team_id": teamId}).fetchone()
+
+    # locale helper
+    def L(en, kr): 
+        return en if locale == "en-US" else kr
+
+    # 6. summary
+    summary = {
+        "id": team_row.id,
+        "name": L(team_row.name_en, team_row.name_kr),
+        "shortName": L(team_row.short_name_en, team_row.short_name_kr),
+        "logo": team_row.icon_url,
+        "manager": L(stats_row.manager_en, stats_row.manager_kr) if stats_row else None,
+        "description": None,
+    }
+
+    # 7. meta
+    meta_block = {
+        "rank": rank_row.rank if rank_row else None,
+        "points": stats_row.overall_points if stats_row else None,
+        "played": stats_row.overall_matches if stats_row else None,
+        "won": stats_row.overall_matches_won if stats_row else None,
+        "drawn": stats_row.overall_matches_drawn if stats_row else None,
+        "lost": stats_row.overall_matches_lost if stats_row else None,
+        "goalsFor": stats_row.overall_goals_for if stats_row else None,
+        "goalsAgainst": stats_row.overall_goals_against if stats_row else None,
+        "avgAge": None,
+        "trophies": None,
+    }
+
+    # 8. static
+    static = {
+        "founded": team_row.founded_year,
+        "stadium": L(stats_row.stadium_en, stats_row.stadium_kr) if stats_row else None,
+        "capacity": stats_row.capacity if stats_row else None,
+        "colors": {
+            "primary": None,
+            "secondary": None
+        }
+    }
+
+    # 9. keyStats
+    pass_accuracy = None
+    if stats_row and stats_row.overall_stat_attack_passes:
+        pass_accuracy = round(
+            stats_row.overall_stat_attack_passes_successful /
+            stats_row.overall_stat_attack_passes, 2
+        )
+
+    key_stats = {
+        "possession": stats_row.overall_stat_average_possession if stats_row else None,
+        "passAccuracy": pass_accuracy,
+        "shotsPerGame": None,
+        "cleanSheets": stats_row.overall_stat_defense_clean_sheets if stats_row else None
+    }
+
+    # 10. squad
+    squad_rows = db.execute(text("""
+        SELECT
+            p.id, ps.number,
+            p.display_name_en, p.display_name_kr,
+            p.position,
+            EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.birth_date)) AS age,
+            p.nationality_en, p.nationality_kr,
+            COALESCE(ps.shooting_goals,0) AS goals,
+            COALESCE(ps.passing_assists,0) AS assists,
+            COALESCE(ps.appearances,0) AS appearances
+        FROM players p
+        JOIN player_stats ps ON p.id = ps.player_id
+        WHERE ps.team_id = :team_id AND ps.season_id = :season_id
+    """), {"team_id": teamId, "season_id": season_id}).fetchall()
+
+    squad = [{
+        "id": r.id,
+        "number": r.number,
+        "name": L(r.display_name_en, r.display_name_kr),
+        "position": r.position,
+        "age": r.age,
+        "nationality": L(r.nationality_en, r.nationality_kr),
+        "teamId": teamId,
+        "rating": None,
+        "goals": r.goals,
+        "assists": r.assists,
+        "appearances": r.appearances
+    } for r in squad_rows]
+
+    # 11. response
+    KST = timezone(timedelta(hours=9))
+    last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
+
+    return {
+        "data": {
+            "summary": summary,
+            "meta": meta_block,
+            "static": static,
+            "keyStats": key_stats,
+            "squad": squad
+        },
+        "meta": {
+            "season": season_id,
+            "leagueId": competition_id,
+            "leagueName": leagueName,
+            "teamId": teamId,
+            "lastUpdated": last_updated,
+            "locale": locale
+        }
+    }
+
+'''
+@router.get("/leagues/{leagueName}/teams/{teamId}")
+def fetch_team_detail(
+    leagueName: str,
+    teamId: str,
     season: Optional[str] = Query(None, description = "If no season is provided, the default value is the latest season"),
     locale: Optional[str] = Query("en-US", description = "support only ko-KR, en-US"),
     db: Session = Depends(get_db),
@@ -183,4 +350,4 @@ def fetch_team_detail(
             "locale" : locale
         }
     }
-
+'''
