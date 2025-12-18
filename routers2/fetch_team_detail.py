@@ -99,19 +99,8 @@ def fetch_team_detail(
         "avgAge": None,
         "trophies": None,
     }
-    '''
-    # 8. static
-    static = {
-        "founded": team_row.founded_year,
-        "stadium": L(stats_row.stadium_en, stats_row.stadium_kr) if stats_row else None,
-        "capacity": stats_row.capacity if stats_row else None,
-        "colors": {
-            "primary": None,
-            "secondary": None
-        }
-    }
 
-    # 9. keyStats
+    # 8. static
     pass_accuracy = None
     if stats_row and stats_row.overall_stat_attack_passes:
         pass_accuracy = round(
@@ -119,40 +108,23 @@ def fetch_team_detail(
             stats_row.overall_stat_attack_passes, 2
         )
 
-    key_stats = {
-        "possession": stats_row.overall_stat_average_possession if stats_row else None,
-        "passAccuracy": pass_accuracy,
-        "shotsPerGame": None,
-        "cleanSheets": stats_row.overall_stat_defense_clean_sheets if stats_row else None
-    }
-    '''
-    pass_accuracy = None
-    if stats_row and stats_row.overall_stat_attack_passes:
-        pass_accuracy = round(
-            stats_row.overall_stat_attack_passes_successful /
-            stats_row.overall_stat_attack_passes,
-            2
-        )
-
     static = {
         "founded": team_row.founded_year,
-        "stadium": (
-            team_profile["ground_name_en"]
-            if locale == "en-US"
-            else team_profile["ground_name_kr"]
-        ),
-        "capacity": team_profile["ground_capacity"],
+        "stadium": L(stats_row.stadium_en, stats_row.stadium_kr) if stats_row else None,
+        "capacity": stats_row.capacity if stats_row else None,
         "colors": {
             "primary": None,
             "secondary": None
         },
-        "keyStats": {
+        "keyStats" : {
             "possession": stats_row.overall_stat_average_possession if stats_row else None,
             "passAccuracy": pass_accuracy,
             "shotsPerGame": None,
             "cleanSheets": stats_row.overall_stat_defense_clean_sheets if stats_row else None
         }
     }
+    
+
 
     # 10. squad
     squad_rows = db.execute(text("""
@@ -193,7 +165,6 @@ def fetch_team_detail(
             "summary": summary,
             "meta": meta_block,
             "static": static,
-            "keyStats": key_stats,
             "squad": squad
         },
         "meta": {
