@@ -101,6 +101,12 @@ def fetch_team_detail(
     }
 
     # 8. static
+    pass_accuracy = None
+    if stats_row and stats_row.overall_stat_attack_passes:
+        pass_accuracy = round(
+            stats_row.overall_stat_attack_passes_successful /
+            stats_row.overall_stat_attack_passes, 2
+        )
     static = {
         "founded": team_row.founded_year,
         "stadium": L(stats_row.stadium_en, stats_row.stadium_kr) if stats_row else None,
@@ -109,22 +115,18 @@ def fetch_team_detail(
             "primary": None,
             "secondary": None
         }
+        "key_stats" : {
+            "possession": stats_row.overall_stat_average_possession if stats_row else None,
+            "passAccuracy": pass_accuracy,
+            "shotsPerGame": None,
+            "cleanSheets": stats_row.overall_stat_defense_clean_sheets if stats_row else None
+         }
     }
 
     # 9. keyStats
-    pass_accuracy = None
-    if stats_row and stats_row.overall_stat_attack_passes:
-        pass_accuracy = round(
-            stats_row.overall_stat_attack_passes_successful /
-            stats_row.overall_stat_attack_passes, 2
-        )
+    
 
-    key_stats = {
-        "possession": stats_row.overall_stat_average_possession if stats_row else None,
-        "passAccuracy": pass_accuracy,
-        "shotsPerGame": None,
-        "cleanSheets": stats_row.overall_stat_defense_clean_sheets if stats_row else None
-    }
+    
 
     # 10. squad
     squad_rows = db.execute(text("""
