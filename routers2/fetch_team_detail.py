@@ -99,7 +99,7 @@ def fetch_team_detail(
         "avgAge": None,
         "trophies": None,
     }
-
+    '''
     # 8. static
     static = {
         "founded": team_row.founded_year,
@@ -124,6 +124,34 @@ def fetch_team_detail(
         "passAccuracy": pass_accuracy,
         "shotsPerGame": None,
         "cleanSheets": stats_row.overall_stat_defense_clean_sheets if stats_row else None
+    }
+    '''
+    pass_accuracy = None
+    if stats_row and stats_row.overall_stat_attack_passes:
+        pass_accuracy = round(
+            stats_row.overall_stat_attack_passes_successful /
+            stats_row.overall_stat_attack_passes,
+            2
+        )
+
+    static = {
+        "founded": team_row.founded_year,
+        "stadium": (
+            team_profile["ground_name_en"]
+            if locale == "en-US"
+            else team_profile["ground_name_kr"]
+        ),
+        "capacity": team_profile["ground_capacity"],
+        "colors": {
+            "primary": None,
+            "secondary": None
+        },
+        "keyStats": {
+            "possession": stats_row.overall_stat_average_possession if stats_row else None,
+            "passAccuracy": pass_accuracy,
+            "shotsPerGame": None,
+            "cleanSheets": stats_row.overall_stat_defense_clean_sheets if stats_row else None
+        }
     }
 
     # 10. squad
