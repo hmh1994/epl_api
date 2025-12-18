@@ -54,7 +54,6 @@ def fetch_season_analytics(
     rows = db.execute(
         sql,
         {
-            "competition_id": competition_id,
             "season_id": season_id
         }
     ).fetchall()
