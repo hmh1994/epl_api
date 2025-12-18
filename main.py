@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 
+from routers2.fetch_season_analytics import router as seasonRouter
+
 from routers2.fetch_news_list import router as newsRouter
 from routers2.fetch_scoring_race import router as scoringRouter
 from routers2.fetch_player_detail import router as playerRouter
@@ -21,12 +23,14 @@ from routers.team_detail_10 import router as Router10
 from api.api_database import router as database_router
 
 app = FastAPI(title="Football Data API", version="1.0",)
-
-app.include_router(newsRouter)
-app.include_router(scoringRouter)
-app.include_router(playerRouter)
-app.include_router(teamRouter)
 app.include_router(premiumRouter)
+app.include_router(seasonRouter)
+app.include_router(teamRouter)
+app.include_router(playerRouter)
+app.include_router(scoringRouter)
+app.include_router(newsRouter)
+
+
 
 app.include_router(Router1)
 app.include_router(Router2)
