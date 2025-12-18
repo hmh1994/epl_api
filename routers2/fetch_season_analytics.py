@@ -36,7 +36,7 @@ def fetch_season_analytics(
         if not season_id:
             return {"error": "No season data found"}
 
-     sql = text("""
+    sql = text("""
         SELECT
             a.id,
             a.key AS analytics_key,
