@@ -150,7 +150,7 @@ def fetch_news_list(
     last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
 
     return {
-        "news": news_list,
+        "data": news_list,
         "meta": {
             "total": total,
             "pageSize": pageSize,

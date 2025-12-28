@@ -76,7 +76,7 @@ def fetch_season_analytics(
 
     # 6. 최종 응답
     return {
-        "metrics": metrics,
+        "data": metrics,
         "meta": {
             "leagueName": leagueName,
             "leagueId": competition_id,
