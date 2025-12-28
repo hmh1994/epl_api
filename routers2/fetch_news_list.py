@@ -72,7 +72,7 @@ from typing import Optional
 from datetime import datetime, timezone, timedelta
 from database import get_db
 
-router = APIRouter(prefix="/api/v1", tags=["news"])
+router = APIRouter(prefix="/api/v1", tags=["fetch_news_list"])
 
 @router.get("/news")
 def fetch_news_list(
