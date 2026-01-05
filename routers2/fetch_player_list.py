@@ -48,6 +48,8 @@ def fetch_player_list(
     team_rows = db.execute(sql_team_ids, {"season_id": season_id}).fetchall()
     team_ids = [row.team_id for row in team_rows]
 
+    KST = timezone(timedelta(hours=9))
+    last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
     if not team_ids:
         return {
             "data": [],
@@ -172,8 +174,10 @@ def fetch_player_list(
     return {
         "data": players,
         "meta": {
-            "season": season_id,
-            "leagueId": competition_id,
-            "leagueName": leagueId
-        }
+                "leagueName": leagueName,
+                "leagueId" : competition_id,
+                "season" : season_id,
+                "locale" : locale,
+                "lastUpdated" : last_updated,
+            }
     }
