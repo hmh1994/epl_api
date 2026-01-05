@@ -125,7 +125,7 @@ def fetch_player_list(
     for row in rows:
         players.append({
             "id": row.id,
-            "name": row.name_en if locale == "en-US" else row.name_kr,
+            "name": row.display_name_en if locale == "en-US" else row.display_name_kr,
             "photo": row.photo_url,
             "teamId": row.team_id,
             "teamName" : row.team_name_en if locale == "en-US" else row.team_name_kr,
