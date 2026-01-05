@@ -131,7 +131,7 @@ def fetch_player_detail(
             "leagueName": leagueName,
             "leagueId": competition_id,
             "season" : season_id,
-            "lastUpdated" : last_updated,
             "locale" : locale,
+            "lastUpdated" : last_updated,
         }
     }
