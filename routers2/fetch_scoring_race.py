@@ -12,8 +12,8 @@ from utils.seasons_util import (
     get_current_or_latest_season_id
 )
 
-router = APIRouter(prefix="/api/v1", tags=["fetch_scoring_race"])
-@router.get("/leagues/{leagueName}/players/scoring-race")
+router = APIRouter(prefix="/api/v1", tags=["fetch_race"])
+@router.get("/leagues/{leagueName}/players/race")
 def fetch_scoring_race(
     leagueName: str,
     season: Optional[str] = Query(None, description="If no season is provided, the default value is the latest season"),
