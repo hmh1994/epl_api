@@ -73,6 +73,7 @@ def fetch_scoring_race(
             "playerId" : row._mapping["id"],
             "name": row._mapping["name"],
             "teamId": row._mapping["team_id"],
+            "teamName": row._mapping["team_name"],
             "goals": row._mapping["goals"],
             "assists": row._mapping["assists"],
             "photo": row._mapping["photo_url"],
