@@ -44,12 +44,17 @@ def fetch_scoring_race(
                 p.id,
                 CASE WHEN :locale = 'ko-KR' THEN p.display_name_kr ELSE p.display_name_en END AS name,
                 ps.team_id,
+                CASE 
+                    WHEN :locale = 'ko-KR' THEN t.name_kr 
+                    ELSE t.name_en 
+                END AS team_name,
                 COALESCE(ps.shooting_goals::int, 0) AS goals,
                 COALESCE(ps.passing_assists::int, 0) AS assists,
                 p.photo_url,
                 ROW_NUMBER() OVER (ORDER BY COALESCE(ps.shooting_goals::int, 0) DESC, COALESCE(ps.passing_assists::int, 0) DESC) AS ranking
             FROM player_stats ps
             JOIN players p ON ps.player_id = p.id
+            JOIN teams t ON ps.team_id = t.id
             WHERE ps.season_id = :season_id
         ) ranked
         LIMIT :limit
