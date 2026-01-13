@@ -57,7 +57,7 @@ def fetch_premium_table(
             ts.overall_goals_against,
             ts.overall_goals_difference,
             ts.overall_points,
-
+            ts.momentum,
             ts.overall_stat_attack_expected_goals,
             ts.overall_stat_attack_expected_assists,
             ts.overall_stat_average_possession,
@@ -102,7 +102,7 @@ def fetch_premium_table(
                 "points": row.overall_points,
             },
             "form": None,
-            "trend": None,
+            "trend": row.momentum,
             "advancedMetrics": {
                 "xG": row.overall_stat_attack_expected_goals,
                 "xGA": row.overall_stat_attack_expected_assists,
