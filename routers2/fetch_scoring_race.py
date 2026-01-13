@@ -101,7 +101,7 @@ def fetch_scoring_race(
             "assists": row.assists,
             "points": row.points,
             "photo": row.photo_url,
-            "ranking": row.ranking
+            "rating": row.ranking
         })
 
     return {
