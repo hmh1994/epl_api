@@ -17,7 +17,7 @@ router = APIRouter(prefix="/api/v1", tags=["fetch_scoring_race"])
 def fetch_scoring_race(
     leagueName: str,
     season: Optional[str] = Query(None, description="If no season is provided, the default value is the latest season"),
-    category: Optional[str] = Query("goal", description="goal | assist | point"),
+    category: Optional[str] = Query("goal", description="goal | assist | point | xg"),
     locale: Optional[str] = Query("en-US", description="support only ko-KR, en-US"),
     limit: Optional[int] = Query(10, description="1~30"),
     db: Session = Depends(get_db),
@@ -43,6 +43,7 @@ def fetch_scoring_race(
         "goal": "COALESCE(ps.shooting_goals, 0)",
         "assist": "COALESCE(ps.passing_assists, 0)",
         "point": "COALESCE(ps.shooting_goals, 0) + COALESCE(ps.passing_assists, 0)",
+        "xg": "COALESCE(ps.shooting_expected_goals_non_penalty, 0)"
     }
 
     order_expr = category_order_map.get(category)
@@ -66,6 +67,7 @@ def fetch_scoring_race(
                 COALESCE(ps.shooting_goals, 0) AS goals,
                 COALESCE(ps.passing_assists, 0) AS assists,
                 (COALESCE(ps.shooting_goals, 0) + COALESCE(ps.passing_assists, 0)) AS points,
+                COALESCE(ps.shooting_expected_goals_non_penalty, 0) AS xg,
                 p.photo_url,
                 ROW_NUMBER() OVER (
                     ORDER BY
@@ -100,6 +102,7 @@ def fetch_scoring_race(
             "goals": row.goals,
             "assists": row.assists,
             "points": row.points,
+            "xg": row.xg,
             "photo": row.photo_url,
             "rating": row.ranking
         })
