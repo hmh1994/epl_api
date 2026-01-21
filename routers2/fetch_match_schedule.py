@@ -42,7 +42,7 @@ def fetch_match_schedule(
             fx.kickoff_time,
             fx.id,
             fx.game_week,
-            fx.grodun_id 
+            fx.ground_id 
         from fixtures fx
         where fx.season_id = :season_id and fx.game_week = :matchweek
     """)
