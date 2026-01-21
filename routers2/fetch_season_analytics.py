@@ -65,8 +65,8 @@ def fetch_season_analytics(
             "id": row.id,
             "key": row.analytics_key,
             "title": row.title_en if locale == "en-US" else row.title_kr,
-            "value": row.value,
-            "delta": row.delta,
+            "value": row.value or 0,
+            "delta": row.delta or 0,
             "description": row.description_en if locale == "en-US" else row.description_kr
         })
 
