@@ -133,12 +133,12 @@ def fetch_news_list(
         news_list.append({
             "id": r.id,
             "title": r.title,
-            "content": r.content,
-            "thumbnailUrl": r.thumbnail_url,
+            "summary": r.content,
+            "thumbnail": r.thumbnail_url,
             "publishDate": r.publish_date,
             "author": r.author,
             "source": r.source,
-            "url": r.url,
+            "newsUrl": r.url,
         })
 
     # pagination meta 계산
