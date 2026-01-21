@@ -107,7 +107,7 @@ def fetch_player_detail(
         "meta" : {
             "leagueName": leagueName,
             "leagueId": competition_id,
-            "playerId" : player_id,
+            "playerId" : playerId,
             "season" : season_id,
             "locale" : locale,
             "lastUpdated" : last_updated,
