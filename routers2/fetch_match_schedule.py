@@ -49,11 +49,26 @@ def fetch_match_schedule(
             gr.city_name_kr,
             ma.period,
             of.display_name_en,
-            of.display_name_kr
+            of.display_name_kr,
+
+            ma.home_team_id,
+            ht.name_en AS home_team_name_en,
+            ht.name_kr AS home_team_name_kr,
+            hts.overall_posistion AS home_overall_position,
+            ma.home_team_score,
+            ma.away_team_id,
+            at.name_en AS away_team_name_en,
+            at.name_kr AS away_team_name_kr,
+            ats.overall_posistion AS away_overall_position,
+            ma.away_team_score
         from fixtures fx
         JOIN grounds gr ON fx.ground_id = gr.id
         JOIN matches ma ON fx.id = ma.fixture_id
         LEFT JOIN officials of ON ma.official_main_referee_id = of.id
+        JOIN teams ht ON ma.home_team_id = ht.id
+        JOIN teams at ON ma.away_team_id = at.id
+        JOIN team_stats hts ON ma.home_team_id = hts.id
+        JOIN team_stats ats ON ma.away_team_id = ats.id
         where fx.season_id = :season_id and fx.game_week = :matchweek
         order by fx.kickoff_time
     """)
@@ -83,9 +98,7 @@ def fetch_match_schedule(
             "kickoff": kickoff_utc.isoformat(),
             "venue": row.name_en if locale == "en-US" else row.name_kr,
             "city": row.city_name_en if locale == "en-US" else row.city_name_kr,
-            "status": status,
-            "home": {},   # ← 이후 점수 넣기 좋게 미리 구조 잡아둬도 좋음
-            "away": {}
+            "status": status
         }
 
         # finished 경기에서만 referee 포함
@@ -93,16 +106,34 @@ def fetch_match_schedule(
             fixture["referee"] = (
                 row.display_name_en if locale == "en-US" else row.display_name_kr
             )
-            
+
+        home_data = {
+            "teamdId": row.home_team_id,
+            "teamdName": row.home_team_name_en if locale == "en-US" else row.home_team_name_kr,
+            "position" : row.home_overall_position
+        }   
+        away_data = {
+            "teamId": row.away_team_id,
+            "teamdName": row.away_team_name_en if locale == "en-US" else row.away_team_name_kr,
+            "position" : row.away_overall_position
+        } 
+
+        if status == "finsihed" :
+            home_data["score"] = row.home_team_score
+            away_data["score"] = row.away_team_score
 
         grouped[date_str].append(fixture)
+        grouped[date_str].append(home_data)
+        grouped[date_str].append(away_data)
 
     # 최종 data 구조
     data = []
     for date, fixtures in grouped.items():
         data.append({
             "date": date,
-            "fixtures": fixtures
+            "fixtures": fixtures,
+            "home" : home_data,
+            "away" : away_data
         })
 
     KST = timezone(timedelta(hours=9))
