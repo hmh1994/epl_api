@@ -62,9 +62,6 @@ def fetch_player_list(
             }
         }
 
-    # -----------------------------------
-    # 4. 실제 선수 데이터 조회 (players + player_stats JOIN)
-    # -----------------------------------
     sql_players = f"""
         SELECT 
             p.id,
@@ -81,7 +78,9 @@ def fetch_player_list(
             p.height,
             p.weight,
             ps.shooting_goals,
-            ps.passing_assists
+            ps.passing_assists,
+            ps.score_overall,
+            ps.score_passing
         FROM players p
         JOIN player_stats ps 
             ON p.id = ps.player_id
@@ -95,9 +94,6 @@ def fetch_player_list(
         "team_ids": team_ids,
     }
 
-    # -----------------------------------
-    # 5. 필터 적용
-    # -----------------------------------
     if teamId:
         sql_players += " AND ps.team_id = :teamId"
         params["teamId"] = teamId
@@ -118,9 +114,6 @@ def fetch_player_list(
 
     rows = db.execute(text(sql_players), params).fetchall()
 
-    # -----------------------------------
-    # 6. 로케일 적용 + null 처리
-    # -----------------------------------
     players = []
     for row in rows:
         players.append({
@@ -136,41 +129,10 @@ def fetch_player_list(
             "weight": row.weight,
             "goals": row.shooting_goals or 0,
             "assists": row.passing_assists or 0,
-            "pace": None,
-            "passing" : None
+            "pace": row.score_overall or 0,
+            "passing" : row.score_passing
         })
-    '''
-        sql_filters = text("""
-            SELECT 
-                ARRAY(
-                    SELECT DISTINCT position 
-                    FROM players
-                    WHERE position IS NOT NULL 
-                ) AS positions,
-                ARRAY(
-                    SELECT DISTINCT team_id 
-                    FROM player_stats 
-                    WHERE season_id = :season_id
-                ) AS team_ids,
-                ARRAY(
-                    SELECT DISTINCT nationality_en
-                    FROM players
-                    WHERE nationality_en IS NOT NULL
-                ) AS nationalities
-        """)
 
-        filter_row = db.execute(sql_filters, {"season_id": season_id}).fetchone()
-
-        filters = {
-            "positions": filter_row.positions,
-            "teamIds": filter_row.team_ids,
-            "nationalities": filter_row.nationalities,
-        }
-    '''
-
-    # -----------------------------------
-    # 8. 최종 반환
-    # -----------------------------------
     return {
         "data": players,
         "meta": {
