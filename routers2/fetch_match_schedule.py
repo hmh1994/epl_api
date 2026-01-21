@@ -110,23 +110,24 @@ def fetch_match_schedule(
             )
 
         home_data = {
-            "teamdId": row.home_team_id,
-            "teamdName": row.home_team_name_en if locale == "en-US" else row.home_team_name_kr,
+            "teamId": row.home_team_id,
+            "teamName": row.home_team_name_en if locale == "en-US" else row.home_team_name_kr,
             "position" : row.home_overall_position
         }   
         away_data = {
             "teamId": row.away_team_id,
-            "teamdName": row.away_team_name_en if locale == "en-US" else row.away_team_name_kr,
+            "teamName": row.away_team_name_en if locale == "en-US" else row.away_team_name_kr,
             "position" : row.away_overall_position
         } 
 
-        if status == "finsihed" :
+        if status == "finished":
             home_data["score"] = row.home_team_score
             away_data["score"] = row.away_team_score
+            
+        fixture["home"] = home_data
+        fixture["away"] = away_data
+        grouped[date_str].append(fixture)    
 
-        grouped[date_str].append(fixture)
-        grouped[date_str].append(home_data)
-        grouped[date_str].append(away_data)
 
     # 최종 data 구조
     data = []
@@ -134,8 +135,6 @@ def fetch_match_schedule(
         data.append({
             "date": date,
             "fixtures": fixtures,
-            "home" : home_data,
-            "away" : away_data
         })
 
     KST = timezone(timedelta(hours=9))
