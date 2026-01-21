@@ -44,6 +44,8 @@ def fetch_player_detail(
             p.display_name_en,
             p.display_name_kr,
             ps.team_id,
+            ts.name_en AS team_name_en,
+            ts.name_kr AS team_name_kr,
             p.position,
             p.photo_url,
             p.nationality_en,
@@ -56,6 +58,7 @@ def fetch_player_detail(
             ps.appearances
         FROM players p
         JOIN player_stats ps ON p.id = ps.player_id
+        JOIN teams ts ON ps.team_id = ts.id
         WHERE ps.season_id = :season_id
         AND p.id = :player_id
     """
@@ -73,6 +76,7 @@ def fetch_player_detail(
             "id": row.id,
             "name": name,
             "teamId": row.team_id,
+            "teamName" : row.team_name_en if locale == "en-US" else row.team_name_kr,
             "position": row.position,
             "photo": row.photo_url,
             "nationality": nationality,
@@ -95,41 +99,15 @@ def fetch_player_detail(
             "matches": row.appearances,
         }
     }
-    '''field = []
-    for row in rows:
-        field.append({
-            "id" : row.id,
-            "name": row.display_name_en if locale == "en-US" else row.display_name_kr,
-            "teamId": row.team_id,
-            "position": row.position,
-            "photo":  row.photo_url,
-            "nationality": row.nationality_en if locale == "en-US" else row.nationality_kr,
-            "age": row.age,
-            "height": row.height,
-            "weight" : row.weight,
-            "pace" : None,
-            "shooting" : None,
-            "passing" :  None,
-            "dribbling" :  None,
-            "defending" : None,
-            "physical" : None,
-            "goals" : row.shooting_goals,
-            "assists" : row.passing_assists,
-            "pace2" : None,
-            "year" : season,
-            "teamId2" : row.team_id,
-            "matches" : row.appearances,
-            "goals2" : row.shooting_goals
-        })
-    '''
+
     KST = timezone(timedelta(hours=9))
-    #last_updated = datetime.now(KST).isoformat()
     last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
     return {
         "data" : data,
         "meta" : {
             "leagueName": leagueName,
             "leagueId": competition_id,
+            "playerId" : player_id,
             "season" : season_id,
             "locale" : locale,
             "lastUpdated" : last_updated,
