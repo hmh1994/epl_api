@@ -55,7 +55,14 @@ def fetch_player_detail(
             p.weight,
             ps.shooting_goals,
             ps.passing_assists,
-            ps.appearances
+            ps.appearances,
+
+            ps.score_overall,
+            ps.score_shooting,
+            ps.score_passing,
+            ps.score_dribbling,
+            ps.score_defending,
+            ps.score_discipline
         FROM players p
         JOIN player_stats ps ON p.id = ps.player_id
         JOIN teams ts ON ps.team_id = ts.id
@@ -85,17 +92,17 @@ def fetch_player_detail(
             "weight": row.weight,
         },
         "attributes": {
-            "pace": None,
-            "shooting": None,
-            "passing": None,
-            "dribbling": None,
-            "defending": None,
-            "physical": None,
+            "pace": row.score_overall,
+            "shooting": row.score_shooting,
+            "passing": row.score_passing,
+            "dribbling": row.score_dribbling,
+            "defending": row.score_defending,
+            "physical": row.score_discipline,
         },
         "performance": {
             "goals": row.shooting_goals,
             "assists": row.passing_assists,
-            "pace": None,
+            "pace": row.score_overall,
             "matches": row.appearances,
         }
     }
