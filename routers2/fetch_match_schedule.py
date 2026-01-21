@@ -47,10 +47,13 @@ def fetch_match_schedule(
             gr.name_kr,
             gr.city_name_en,
             gr.city_name_kr,
-            ma.period
+            ma.period,
+            of.display_name_en,
+            of.display_name_kr
         from fixtures fx
         JOIN grounds gr ON fx.ground_id = gr.id
         JOIN matches ma ON fx.id = ma.fixture_id
+        LEFT JOIN officials of ON ma.official_main_referee_id = of.id
         where fx.season_id = :season_id and fx.game_week = :matchweek
         order by fx.kickoff_time
     """)
@@ -60,8 +63,6 @@ def fetch_match_schedule(
     now_utc = datetime.now(timezone.utc)
     for row in rows:
         kickoff_utc = row.kickoff_time
-
-        # status 판별
         if row.period == "FULLTIME":
             status = "finished"
 
@@ -76,14 +77,24 @@ def fetch_match_schedule(
 
         date_str = row.kickoff_time.date().isoformat()
         
-        grouped[date_str].append({
+        fixture = {
             "id": row.id,
             "matchweek": row.game_week,
-            "kickoff": row.kickoff_time.isoformat(),
+            "kickoff": kickoff_utc.isoformat(),
             "venue": row.name_en if locale == "en-US" else row.name_kr,
             "city": row.city_name_en if locale == "en-US" else row.city_name_kr,
-            "status": status
-        })
+            "status": status,
+            "home": {},   # ← 이후 점수 넣기 좋게 미리 구조 잡아둬도 좋음
+            "away": {}
+        }
+
+        # finished 경기에서만 referee 포함
+        if status == "finished" and row.display_name_en:
+            fixture["referee"] = {
+                "name": row.display_name_en if locale == "en-US" else row.display_name_kr
+            }
+
+        grouped[date_str].append(fixture)
 
     # 최종 data 구조
     data = []
