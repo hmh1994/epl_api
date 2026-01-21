@@ -39,7 +39,8 @@ def fetch_team_detail(
     # 3. 팀 기본 정보
     team_row = db.execute(text("""
         SELECT id, name_en, name_kr, short_name_en, short_name_kr,
-               icon_url, founded_year
+               icon_url, founded_year,
+               description_en, description_kr
         FROM teams
         WHERE id = :team_id
     """), {"team_id": teamId}).fetchone()
@@ -83,7 +84,7 @@ def fetch_team_detail(
         "shortName": L(team_row.short_name_en, team_row.short_name_kr),
         "logo": team_row.icon_url,
         "manager": L(stats_row.manager_en, stats_row.manager_kr) if stats_row else None,
-        "description": None,
+        "description": team_row.description_en if locale == "en-US" else team_row.description_kr,
     }
 
     # 7. meta
