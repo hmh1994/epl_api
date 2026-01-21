@@ -3,6 +3,7 @@ from fastapi import FastAPI
 
 
 from routers2.fetch_premium_table import router as premiumRouter
+from routers2.fetch_match_schedule import router as scheduleRouter
 from routers2.fetch_player_list import router as playerListRouter
 from routers2.fetch_season_analytics import router as seasonRouter
 from routers2.fetch_team_detail import router as teamRouter
@@ -26,6 +27,7 @@ from api.api_database import router as database_router
 
 app = FastAPI(title="Football Data API", version="1.0",)
 app.include_router(premiumRouter)
+app.include_router(scheduleRouter)
 app.include_router(playerListRouter)
 app.include_router(seasonRouter)
 app.include_router(teamRouter)
