@@ -54,12 +54,12 @@ def fetch_match_schedule(
             ma.home_team_id,
             ht.name_en AS home_team_name_en,
             ht.name_kr AS home_team_name_kr,
-            hts.overall_posistion AS home_overall_position,
+            hts.overall_position AS home_overall_position,
             ma.home_team_score,
             ma.away_team_id,
             at.name_en AS away_team_name_en,
             at.name_kr AS away_team_name_kr,
-            ats.overall_posistion AS away_overall_position,
+            ats.overall_position AS away_overall_position,
             ma.away_team_score
         from fixtures fx
         JOIN grounds gr ON fx.ground_id = gr.id
@@ -67,8 +67,10 @@ def fetch_match_schedule(
         LEFT JOIN officials of ON ma.official_main_referee_id = of.id
         JOIN teams ht ON ma.home_team_id = ht.id
         JOIN teams at ON ma.away_team_id = at.id
-        JOIN team_stats hts ON ma.home_team_id = hts.id
-        JOIN team_stats ats ON ma.away_team_id = ats.id
+        LEFT JOIN team_stats hts 
+            ON ma.home_team_id = hts.team_id AND hts.season_id = :season_id
+        LEFT JOIN team_stats ats 
+            ON ma.away_team_id = ats.team_id AND ats.season_id = :season_id
         where fx.season_id = :season_id and fx.game_week = :matchweek
         order by fx.kickoff_time
     """)
