@@ -58,7 +58,9 @@ def fetch_match_schedule(
             "date": row.kickoff_time.date().isoformat(),
             "id": row.id,
             "matchweek" : row.game_week,
-            "kickoff" : row.kickoff_time.isoformat()
+            "kickoff" : row.kickoff_time.isoformat(),
+            "venue": row.name_en if locale == "en-US" else row.name_kr,
+            "city" : row.city_name_en if locale == "en-US" else row.city_name_kr
         })
 
     KST = timezone(timedelta(hours=9))
