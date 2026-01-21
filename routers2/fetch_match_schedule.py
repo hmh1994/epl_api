@@ -45,9 +45,11 @@ def fetch_match_schedule(
             gr.name_en,
             gr.name_kr,
             gr.city_name_en,
-            gr.city_name_kr
+            gr.city_name_kr,
+            ma.period
         from fixtures fx
         JOIN grounds gr ON fx.ground_id = gr.id
+        JOIN matches ma ON fx.id = ma.fixture_id
         where fx.season_id = :season_id and fx.game_week = :matchweek
     """)
     rows = db.execute(sql, {"season_id": season_id, "matchweek": matchweek}).fetchall()
@@ -60,7 +62,8 @@ def fetch_match_schedule(
             "matchweek" : row.game_week,
             "kickoff" : row.kickoff_time.isoformat(),
             "venue": row.name_en if locale == "en-US" else row.name_kr,
-            "city" : row.city_name_en if locale == "en-US" else row.city_name_kr
+            "city" : row.city_name_en if locale == "en-US" else row.city_name_kr,
+            "status" : "finished" if row.period == "FULLTIME" else "upcoming"
         })
 
     KST = timezone(timedelta(hours=9))
