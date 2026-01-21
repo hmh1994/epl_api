@@ -90,9 +90,8 @@ def fetch_match_schedule(
 
         # finished 경기에서만 referee 포함
         if status == "finished" and row.display_name_en:
-            fixture["referee"] = {
-                "name": row.display_name_en if locale == "en-US" else row.display_name_kr
-            }
+            fixture["referee"] = "name": row.display_name_en if locale == "en-US" else row.display_name_kr
+            
 
         grouped[date_str].append(fixture)
 
