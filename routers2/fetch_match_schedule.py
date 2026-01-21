@@ -42,8 +42,12 @@ def fetch_match_schedule(
             fx.kickoff_time,
             fx.id,
             fx.game_week,
-            fx.ground_id 
+            gr.name_en,
+            gr.name_kr,
+            gr.city_name_en,
+            gr.city_name_kr
         from fixtures fx
+        JOIN grounds gr ON fx.ground_id = gr.id
         where fx.season_id = :season_id and fx.game_week = :matchweek
     """)
     rows = db.execute(sql, {"season_id": season_id, "matchweek": matchweek}).fetchall()
