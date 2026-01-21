@@ -16,8 +16,8 @@ router = APIRouter(prefix="/api/v1", tags=["fetch_premium_table"])
 @router.get("/leagues/{leagueName}/teams")
 def fetch_premium_table(
     leagueName: str,
-    season: Optional[str] = Query(None),
-    locale: Optional[str] = Query("en-US"),
+    season: Optional[str] = Query(None, description="If no season is provided, the default value is the latest season"),
+    locale: Optional[str] = Query("en-US", description="support only ko-KR, en-US"),
     db: Session = Depends(get_db),
 ):
     ## 1. 리그
@@ -138,7 +138,7 @@ def fetch_premium_table(
                 "goalDifference": row.overall_goals_difference,
                 "points": row.overall_points,
             },
-            "form": form,  # ✅ 최근 5경기 ["W","D","L",...]
+            "form": form,  
             "trend": row.momentum,
             "advancedMetrics": {
                 "xG": row.overall_stat_attack_expected_goals,
@@ -146,7 +146,6 @@ def fetch_premium_table(
                 "possession": row.overall_stat_average_possession,
                 "passAccuracy": pass_accuracy,
                 "cleanSheets": row.overall_stat_defense_clean_sheets,
-                "bigChances": None,
             }
         })
 
