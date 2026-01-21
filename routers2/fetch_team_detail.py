@@ -40,7 +40,7 @@ def fetch_team_detail(
     team_row = db.execute(text("""
         SELECT id, name_en, name_kr, short_name_en, short_name_kr,
                icon_url, founded_year,
-               description_en, description_kr
+               description_en, description_kr, color_primary, color_secondary
         FROM teams
         WHERE id = :team_id
     """), {"team_id": teamId}).fetchone()
@@ -114,8 +114,8 @@ def fetch_team_detail(
         "stadium": L(stats_row.stadium_en, stats_row.stadium_kr) if stats_row else None,
         "capacity": stats_row.capacity if stats_row else None,
         "colors": {
-            "primary": None,
-            "secondary": None
+            "primary": team_row.color_primary,
+            "secondary": team_row.color_secondary
         },
         "keyStats" : {
             "possession": stats_row.overall_stat_average_possession if stats_row else None,
@@ -137,7 +137,8 @@ def fetch_team_detail(
             p.nationality_en, p.nationality_kr,
             COALESCE(ps.shooting_goals,0) AS goals,
             COALESCE(ps.passing_assists,0) AS assists,
-            COALESCE(ps.appearances,0) AS appearances
+            COALESCE(ps.appearances,0) AS appearances,
+            ps.score_overall
         FROM players p
         JOIN player_stats ps ON p.id = ps.player_id
         WHERE ps.team_id = :team_id AND ps.season_id = :season_id
@@ -151,7 +152,7 @@ def fetch_team_detail(
         "age": r.age,
         "nationality": L(r.nationality_en, r.nationality_kr),
         "teamId": teamId,
-        "rating": None,
+        "rating": r.score_overall,
         "goals": r.goals,
         "assists": r.assists,
         "appearances": r.appearances
