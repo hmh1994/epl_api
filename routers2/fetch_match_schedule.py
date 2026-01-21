@@ -57,17 +57,32 @@ def fetch_match_schedule(
     rows = db.execute(sql, {"season_id": season_id, "matchweek": matchweek}).fetchall()
 
     grouped = defaultdict(list)
-
+    now_utc = datetime.now(timezone.utc)
     for row in rows:
-        date_str = row.kickoff_time.date().isoformat()
+        kickoff_utc = row.kickoff_time
 
+        # status 판별
+        if row.period == "FULLTIME":
+            status = "finished"
+
+        elif (
+            row.period == "PREMATCH"
+            and kickoff_utc <= now_utc <= kickoff_utc + timedelta(minutes=300)
+        ):
+            status = "live"
+
+        else:
+            status = "upcoming"
+
+        date_str = row.kickoff_time.date().isoformat()
+        
         grouped[date_str].append({
             "id": row.id,
             "matchweek": row.game_week,
             "kickoff": row.kickoff_time.isoformat(),
             "venue": row.name_en if locale == "en-US" else row.name_kr,
             "city": row.city_name_en if locale == "en-US" else row.city_name_kr,
-            "status": "finished" if row.period == "FULLTIME" else "upcoming"
+            "status": status
         })
 
     # 최종 data 구조
