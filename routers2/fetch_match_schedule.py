@@ -4,6 +4,7 @@ from sqlalchemy import text
 from typing import Optional
 from database import get_db
 from datetime import datetime, timedelta, timezone
+from collections import defaultdict
 
 from utils.leagues_util import LEAGUE_ENUM_MAP, get_competition_id
 from utils.seasons_util import (
@@ -50,27 +51,38 @@ def fetch_match_schedule(
         from fixtures fx
         JOIN grounds gr ON fx.ground_id = gr.id
         JOIN matches ma ON fx.id = ma.fixture_id
-        where fx.season_id = :season_id and fx.game_week = :matchweek
+        where fx.season_id = :season_id and fx.game_week = :matchwee
+        order by fx.kickoff_time
     """)
     rows = db.execute(sql, {"season_id": season_id, "matchweek": matchweek}).fetchall()
 
-    match_list = []
+    grouped = defaultdict(list)
+
     for row in rows:
-        match_list.append({
-            "date": row.kickoff_time.date().isoformat(),
+        date_str = row.kickoff_time.date().isoformat()
+
+        grouped[date_str].append({
             "id": row.id,
-            "matchweek" : row.game_week,
-            "kickoff" : row.kickoff_time.isoformat(),
+            "matchweek": row.game_week,
+            "kickoff": row.kickoff_time.isoformat(),
             "venue": row.name_en if locale == "en-US" else row.name_kr,
-            "city" : row.city_name_en if locale == "en-US" else row.city_name_kr,
-            "status" : "finished" if row.period == "FULLTIME" else "upcoming"
+            "city": row.city_name_en if locale == "en-US" else row.city_name_kr,
+            "status": "finished" if row.period == "FULLTIME" else "upcoming"
+        })
+
+    # 최종 data 구조
+    data = []
+    for date, fixtures in grouped.items():
+        data.append({
+            "date": date,
+            "fixtures": fixtures
         })
 
     KST = timezone(timedelta(hours=9))
     last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
 
     return {
-        "data": match_list,
+        "data": data,
         "meta": {
             "leagueName": leagueName,
             "leagueId": competition_id,
