@@ -69,6 +69,7 @@ def fetch_scoring_race(
                 (COALESCE(ps.shooting_goals, 0) + COALESCE(ps.passing_assists, 0)) AS points,
                 COALESCE(ps.shooting_expected_goals_non_penalty, 0) AS xg,
                 p.photo_url,
+                ps.score_overall,
                 ROW_NUMBER() OVER (
                     ORDER BY
                         {order_expr} DESC,
@@ -104,7 +105,8 @@ def fetch_scoring_race(
             "points": row.points,
             "xg": row.xg,
             "photo": row.photo_url,
-            "rating": row.ranking
+            "rating": row.score_overall,
+            "ranking" : row.ranking
         })
 
     return {
