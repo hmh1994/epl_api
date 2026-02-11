@@ -96,6 +96,18 @@ def fetch_team_detail(
             stats_row.overall_stat_attack_passes_successful /
             stats_row.overall_stat_attack_passes, 2
         )
+    
+    shots_per_game = None
+    if (
+        stats_row
+        and stats_row.overall_stat_attack_total_shots
+        and stats_row.overall_matches
+        and stats_row.overall_matches > 0
+    ):
+        shots_per_game = round(
+            stats_row.overall_stat_attack_total_shots / stats_row.overall_matches,
+            2
+        )
 
     static = {
         "founded": team_row.founded_year,
@@ -108,7 +120,7 @@ def fetch_team_detail(
         "keyStats" : {
             "possession": stats_row.overall_stat_average_possession if stats_row else None,
             "passAccuracy": pass_accuracy,
-            "shotsPerGame": None,
+            "shotsPerGame": shots_per_game,
             "cleanSheets": stats_row.overall_stat_defense_clean_sheets if stats_row else None
         }
     }
