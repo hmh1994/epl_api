@@ -63,7 +63,10 @@ def fetch_match_schedule(
             a2_ref.display_name_kr     AS referee_a2_kr,
             fourth_ref.display_name_en AS referee_4th_en,
             fourth_ref.display_name_kr AS referee_4th_kr,
-
+            ht.name_en AS home_team_name_en,
+            ht.name_kr AS home_team_name_kr,
+            at.name_en AS away_team_name_en,
+            at.name_kr AS away_team_name_kr,
             ma.home_team_id,
             hts.id AS home_team_stat_id,
             hts.overall_position AS home_position,
@@ -82,6 +85,8 @@ def fetch_match_schedule(
         LEFT JOIN officials fourth_ref ON ma.official_fourth_referee_id = fourth_ref.id
         LEFT JOIN team_stats hts ON ma.home_team_id = hts.team_id AND hts.season_id = :season_id
         LEFT JOIN team_stats ats ON ma.away_team_id = ats.team_id AND ats.season_id = :season_id
+        LEFT JOIN teams ht ON ma.home_team_id = ht.id
+        LEFT JOIN teams at ON ma.away_team_id = at.id
         WHERE fx.season_id = :season_id
           AND fx.kickoff_time::date BETWEEN :start_date AND :end_date
         ORDER BY fx.kickoff_time
@@ -163,12 +168,14 @@ def fetch_match_schedule(
 
         home = {
             "teamId": row.home_team_id,
+            "teamName": row.home_team_name_en if locale == "en-US" else row.home_team_name_kr,
             "leaguePosition": row.home_position,
             "recentForm": get_recent_form(row.home_team_stat_id, kickoff),
         }
 
         away = {
             "teamId": row.away_team_id,
+            "teamName": row.away_team_name_en if locale == "en-US" else row.away_team_name_kr,
             "leaguePosition": row.away_position,
             "recentForm": get_recent_form(row.away_team_stat_id, kickoff),
         }
