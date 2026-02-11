@@ -87,19 +87,7 @@ def fetch_team_detail(
         "description": team_row.description_en if locale == "en-US" else team_row.description_kr,
     }
 
-    # 7. meta
-    meta_block = {
-        "rank": rank_row.rank if rank_row else None,
-        "points": stats_row.overall_points if stats_row else None,
-        "played": stats_row.overall_matches if stats_row else None,
-        "won": stats_row.overall_matches_won if stats_row else None,
-        "drawn": stats_row.overall_matches_drawn if stats_row else None,
-        "lost": stats_row.overall_matches_lost if stats_row else None,
-        "goalsFor": stats_row.overall_goals_for if stats_row else None,
-        "goalsAgainst": stats_row.overall_goals_against if stats_row else None,
-        "avgAge": None,
-        "trophies": None,
-    }
+
 
     # 8. static
     pass_accuracy = None
@@ -144,6 +132,12 @@ def fetch_team_detail(
         WHERE ps.team_id = :team_id AND ps.season_id = :season_id
     """), {"team_id": teamId, "season_id": season_id}).fetchall()
 
+    avg_age = None
+    if squad_rows:
+        ages = [r.age for r in squad_rows if r.age is not None]
+        if ages:
+            avg_age = round(sum(ages) / len(ages), 1)
+
     squad = [{
         "id": r.id,
         "number": r.number,
@@ -157,6 +151,20 @@ def fetch_team_detail(
         "assists": r.assists,
         "appearances": r.appearances
     } for r in squad_rows]
+
+    # 7. meta
+    meta_block = {
+        "rank": rank_row.rank if rank_row else None,
+        "points": stats_row.overall_points if stats_row else None,
+        "played": stats_row.overall_matches if stats_row else None,
+        "won": stats_row.overall_matches_won if stats_row else None,
+        "drawn": stats_row.overall_matches_drawn if stats_row else None,
+        "lost": stats_row.overall_matches_lost if stats_row else None,
+        "goalsFor": stats_row.overall_goals_for if stats_row else None,
+        "goalsAgainst": stats_row.overall_goals_against if stats_row else None,
+        "avgAge": avg_age,
+        "trophies": None,
+    }
 
     # 11. response
     KST = timezone(timedelta(hours=9))
