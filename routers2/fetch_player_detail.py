@@ -78,6 +78,32 @@ def fetch_player_detail(
     name = row.display_name_en if locale == "en-US" else row.display_name_kr
     nationality = row.nationality_en if locale == "en-US" else row.nationality_kr
 
+    career_sql = """
+            SELECT
+                s.id AS season_id,
+                ps.team_id,
+                ps.appearances,
+                ps.shooting_goals
+            FROM player_stats ps
+            JOIN seasons s ON ps.season_id = s.id
+            WHERE ps.player_id = :player_id
+            ORDER BY s.id DESC
+        """
+    career_rows = db.execute(
+        text(career_sql),
+        {"player_id": playerId}
+    ).fetchall()
+
+    career = []
+    for r in career_rows:
+        career.append({
+            "year": r.season_id,
+            "teamId": r.team_id,
+            "matches": r.appearances or 0,
+            "goals": r.shooting_goals or 0
+        })
+    
+
     data = {
         "summary": {
             "id": row.id,
@@ -104,7 +130,8 @@ def fetch_player_detail(
             "assists": row.passing_assists,
             "pace": row.score_overall,
             "matches": row.appearances,
-        }
+        },
+        "career": career
     }
 
     KST = timezone(timedelta(hours=9))

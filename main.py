@@ -36,7 +36,7 @@ app.include_router(scoringRouter)
 app.include_router(newsRouter)
 
 
-
+'''
 app.include_router(Router1)
 app.include_router(Router2)
 app.include_router(Router3)
@@ -47,5 +47,5 @@ app.include_router(Router6)
 #app.include_router(Router8)
 app.include_router(Router9)
 app.include_router(Router10)
-
+'''
 app.include_router(database_router)
