@@ -56,8 +56,14 @@ def fetch_match_schedule(
             gr.city_name_kr,
             ma.period,
 
-            of.display_name_en AS referee_en,
-            of.display_name_kr AS referee_kr,
+            main_ref.display_name_en   AS referee_main_en,
+            main_ref.display_name_kr   AS referee_main_kr,
+            a1_ref.display_name_en     AS referee_a1_en,
+            a1_ref.display_name_kr     AS referee_a1_kr,
+            a2_ref.display_name_en     AS referee_a2_en,
+            a2_ref.display_name_kr     AS referee_a2_kr,
+            fourth_ref.display_name_en AS referee_4th_en,
+            fourth_ref.display_name_kr AS referee_4th_kr,
 
             ma.home_team_id,
             hts.overall_position AS home_position,
@@ -69,7 +75,14 @@ def fetch_match_schedule(
         FROM fixtures fx
         JOIN grounds gr ON fx.ground_id = gr.id
         JOIN matches ma ON fx.id = ma.fixture_id
-        LEFT JOIN officials of ON ma.official_main_referee_id = of.id
+        LEFT JOIN officials main_ref 
+            ON ma.official_main_referee_id = main_ref.id
+        LEFT JOIN officials a1_ref 
+            ON ma.official_assistant_1_referee_id = a1_ref.id
+        LEFT JOIN officials a2_ref 
+            ON ma.official_assistant_2_referee_id = a2_ref.id
+        LEFT JOIN officials fourth_ref 
+            ON ma.official_fourth_referee_id = fourth_ref.id
         LEFT JOIN team_stats hts ON ma.home_team_id = hts.team_id AND hts.season_id = :season_id
         LEFT JOIN team_stats ats ON ma.away_team_id = ats.team_id AND ats.season_id = :season_id
         WHERE fx.season_id = :season_id
@@ -142,10 +155,10 @@ def fetch_match_schedule(
 
         if status == "finished" and row.referee_en:
             fixture["referee"] = {
-                "main": row.referee_en if locale == "en-US" else row.referee_kr,
-                "assist1": None,
-                "assist2": None,
-                "fourth": None,
+                "main": row.referee_main_en if locale == "en-US" else row.referee_main_kr,
+                "assist1": row.referee_a1_en if locale == "en-US" else row.referee_a1_kr,
+                "assist2": row.referee_a2_en if locale == "en-US" else row.referee_a2_kr,
+                "fourth": row.referee_4th_en if locale == "en-US" else row.referee_4th_kr
             }
 
         home = {
