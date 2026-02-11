@@ -19,7 +19,8 @@ def fetch_match_schedule(
     leagueName: str,
     season: Optional[str] = Query(None, description="If no season is provided, the default value is the latest season"),
     locale: Optional[str] = Query("en-US", description="support only ko-KR, en-US"),
-    matchweek: Optional[int] = Query(1, ge=1),
+    startDate: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+    endDate: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     db: Session = Depends(get_db),
 ):
     ## 1. 리그
