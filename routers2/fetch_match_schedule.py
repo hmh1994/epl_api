@@ -153,7 +153,7 @@ def fetch_match_schedule(
             "status": status,
         }
 
-        if status == "finished" and referee_main_en:
+        if status == "finished" :
             fixture["referee"] = {
                 "main": row.referee_main_en if locale == "en-US" else row.referee_main_kr,
                 "assist1": row.referee_a1_en if locale == "en-US" else row.referee_a1_kr,
