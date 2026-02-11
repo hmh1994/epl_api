@@ -40,11 +40,10 @@ def fetch_match_schedule(
         if not season_id:
             return {"error": "No season data found"}
 
-    # 날짜 기본값 처리
     if not startDate or not endDate:
         return {"error": "startDate and endDate are required"}
 
-    # 3. 경기 조회 SQL
+    # 3. 경기 조회
     sql = text("""
         SELECT 
             fx.kickoff_time,
@@ -66,23 +65,21 @@ def fetch_match_schedule(
             fourth_ref.display_name_kr AS referee_4th_kr,
 
             ma.home_team_id,
+            hts.id AS home_team_stat_id,
             hts.overall_position AS home_position,
             ma.home_team_score,
 
             ma.away_team_id,
+            ats.id AS away_team_stat_id,
             ats.overall_position AS away_position,
             ma.away_team_score
         FROM fixtures fx
         JOIN grounds gr ON fx.ground_id = gr.id
         JOIN matches ma ON fx.id = ma.fixture_id
-        LEFT JOIN officials main_ref 
-            ON ma.official_main_referee_id = main_ref.id
-        LEFT JOIN officials a1_ref 
-            ON ma.official_assistant_1_referee_id = a1_ref.id
-        LEFT JOIN officials a2_ref 
-            ON ma.official_assistant_2_referee_id = a2_ref.id
-        LEFT JOIN officials fourth_ref 
-            ON ma.official_fourth_referee_id = fourth_ref.id
+        LEFT JOIN officials main_ref ON ma.official_main_referee_id = main_ref.id
+        LEFT JOIN officials a1_ref ON ma.official_assistant_1_referee_id = a1_ref.id
+        LEFT JOIN officials a2_ref ON ma.official_assistant_2_referee_id = a2_ref.id
+        LEFT JOIN officials fourth_ref ON ma.official_fourth_referee_id = fourth_ref.id
         LEFT JOIN team_stats hts ON ma.home_team_id = hts.team_id AND hts.season_id = :season_id
         LEFT JOIN team_stats ats ON ma.away_team_id = ats.team_id AND ats.season_id = :season_id
         WHERE fx.season_id = :season_id
@@ -90,16 +87,13 @@ def fetch_match_schedule(
         ORDER BY fx.kickoff_time
     """)
 
-    rows = db.execute(
-        sql,
-        {
-            "season_id": season_id,
-            "start_date": startDate,
-            "end_date": endDate,
-        }
-    ).fetchall()
+    rows = db.execute(sql, {
+        "season_id": season_id,
+        "start_date": startDate,
+        "end_date": endDate,
+    }).fetchall()
 
-    # 4. 최근 5경기 form 조회 SQL
+    # 4. recentForm SQL (기준 경기 이전)
     form_sql = text("""
         SELECT
             tsma.is_home,
@@ -108,69 +102,75 @@ def fetch_match_schedule(
         FROM team_stat_match_association tsma
         JOIN matches m ON tsma.match_id = m.id
         WHERE tsma.team_stat_id = :team_stat_id
+          AND tsma.kickoff_time < :fixture_kickoff
         ORDER BY tsma.kickoff_time DESC
         LIMIT 5
     """)
 
-    def get_recent_form(team_stat_id: str):
-        form_rows = db.execute(form_sql, {"team_stat_id": team_stat_id}).fetchall()
-        result = []
-        for r in form_rows:
-            if r.is_home == "t":
+    def get_recent_form(team_stat_id: str, fixture_kickoff: datetime):
+        if not team_stat_id:
+            return []
+
+        rows = db.execute(form_sql, {
+            "team_stat_id": team_stat_id,
+            "fixture_kickoff": fixture_kickoff,
+        }).fetchall()
+
+        form = []
+        for r in rows:
+            if r.is_home:
                 team_score, opp_score = r.home_team_score, r.away_team_score
             else:
                 team_score, opp_score = r.away_team_score, r.home_team_score
 
             if team_score > opp_score:
-                result.append("W")
+                form.append("W")
             elif team_score == opp_score:
-                result.append("D")
+                form.append("D")
             else:
-                result.append("L")
-        return result
+                form.append("L")
+        return form
 
     grouped = defaultdict(list)
     now_utc = datetime.now(timezone.utc)
 
     for row in rows:
-        kickoff_utc = row.kickoff_time
+        kickoff = row.kickoff_time
 
         if row.period == "FULLTIME":
             status = "finished"
-        elif row.period == "PREMATCH" and kickoff_utc <= now_utc <= kickoff_utc + timedelta(minutes=300):
+        elif row.period == "PREMATCH" and kickoff <= now_utc <= kickoff + timedelta(minutes=300):
             status = "live"
         else:
             status = "upcoming"
 
-        date_str = kickoff_utc.date().isoformat()
-
         fixture = {
             "id": row.id,
             "matchweek": row.game_week,
-            "kickoff": kickoff_utc.isoformat(),
+            "kickoff": kickoff.isoformat(),
             "venue": row.name_en if locale == "en-US" else row.name_kr,
             "city": row.city_name_en if locale == "en-US" else row.city_name_kr,
             "status": status,
         }
 
-        if status == "finished" :
+        if status == "finished":
             fixture["referee"] = {
                 "main": row.referee_main_en if locale == "en-US" else row.referee_main_kr,
                 "assist1": row.referee_a1_en if locale == "en-US" else row.referee_a1_kr,
                 "assist2": row.referee_a2_en if locale == "en-US" else row.referee_a2_kr,
-                "fourth": row.referee_4th_en if locale == "en-US" else row.referee_4th_kr
+                "fourth": row.referee_4th_en if locale == "en-US" else row.referee_4th_kr,
             }
 
         home = {
             "teamId": row.home_team_id,
             "leaguePosition": row.home_position,
-            "recentForm": get_recent_form(row.home_team_id),
+            "recentForm": get_recent_form(row.home_team_stat_id, kickoff),
         }
 
         away = {
             "teamId": row.away_team_id,
             "leaguePosition": row.away_position,
-            "recentForm": get_recent_form(row.away_team_id),
+            "recentForm": get_recent_form(row.away_team_stat_id, kickoff),
         }
 
         if status == "finished":
@@ -180,15 +180,9 @@ def fetch_match_schedule(
         fixture["home"] = home
         fixture["away"] = away
 
-        grouped[date_str].append(fixture)
-
-    data = [
-        {"date": date, "fixtures": fixtures}
-        for date, fixtures in grouped.items()
-    ]
+        grouped[kickoff.date().isoformat()].append(fixture)
 
     KST = timezone(timedelta(hours=9))
-    last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
 
     return {
         "data": {
@@ -196,13 +190,16 @@ def fetch_match_schedule(
                 "startDate": startDate,
                 "endDate": endDate,
             },
-            "schedule": data,
+            "schedule": [
+                {"date": d, "fixtures": fxs}
+                for d, fxs in grouped.items()
+            ],
         },
         "meta": {
             "leagueName": leagueName,
             "leagueId": competition_id,
             "season": season_id,
-            "lastUpdated": last_updated,
+            "lastUpdated": datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S"),
             "locale": locale,
-        }
+        },
     }
