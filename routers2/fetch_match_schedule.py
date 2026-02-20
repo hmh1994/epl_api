@@ -142,6 +142,12 @@ def fetch_match_schedule(
     for row in rows:
         kickoff = row.kickoff_time
 
+        # DB 값이 naive 일 경우 UTC 로 보정
+        if kickoff.tzinfo is None:
+            kickoff = kickoff.replace(tzinfo=timezone.utc)
+
+        now_utc = datetime.now(timezone.utc)
+
         if row.period == "FULLTIME":
             status = "finished"
         elif row.period == "PREMATCH" and kickoff <= now_utc <= kickoff + timedelta(minutes=300):
