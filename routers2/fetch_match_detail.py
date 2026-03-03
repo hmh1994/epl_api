@@ -48,5 +48,5 @@ def fetch_match_detail(
     row = db.execute(text(sql), params).fetchone()
 
     return {
-        "data" : row
+        "data": dict(row._mapping)  # ✅ 핵심 수정
     }
