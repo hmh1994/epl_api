@@ -165,8 +165,7 @@ def fetch_match_detail(
             "city": row.city_name_en if locale == "en-US" else row.city_name_kr,
             "status": status,
             "home" : home,
-            "away" : away,
-            "attendance" : row.attendance
+            "away" : away
         }
 
     if status == "finished":
@@ -177,6 +176,16 @@ def fetch_match_detail(
                 "fourth": row.referee_4th_en if locale == "en-US" else row.referee_4th_kr,
         }
 
+    KST = timezone(timedelta(hours=9))
     return {
-        "fixture" : fixture
+        "fixture" : fixture,
+        "attendance": row.attendance,
+        "meta": {
+            "leagueName": leagueName,
+            "leagueId": competition_id,
+            "matchId" : matchId,
+            "season": season_id,
+            "lastUpdated": datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S"),
+            "locale": locale
+        }
     }
