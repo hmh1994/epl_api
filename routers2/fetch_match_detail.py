@@ -50,6 +50,20 @@ def fetch_match_detail(
             gr.city_name_kr,
             ma.period,
 
+            ma.home_team_id,
+            ht.name_en AS home_team_name_en,
+            ht.name_kr AS home_team_name_kr,
+            ma.home_team_score,
+            hts.id AS home_team_stat_id,
+            hts.overall_position AS home_position,
+
+            ma.away_team_id,
+            at.name_en AS away_team_name_en,
+            at.name_kr AS away_team_name_kr,
+            ma.away_team_score,
+            ats.id AS away_team_stat_id,
+            ats.overall_position AS away_position,
+
             main_ref.display_name_en   AS referee_main_en,
             main_ref.display_name_kr   AS referee_main_kr,
             a1_ref.display_name_en     AS referee_a1_en,
@@ -57,20 +71,7 @@ def fetch_match_detail(
             a2_ref.display_name_en     AS referee_a2_en,
             a2_ref.display_name_kr     AS referee_a2_kr,
             fourth_ref.display_name_en AS referee_4th_en,
-            fourth_ref.display_name_kr AS referee_4th_kr,
-            ht.name_en AS home_team_name_en,
-            ht.name_kr AS home_team_name_kr,
-            at.name_en AS away_team_name_en,
-            at.name_kr AS away_team_name_kr,
-            ma.home_team_id,
-            hts.id AS home_team_stat_id,
-            hts.overall_position AS home_position,
-            ma.home_team_score,
-
-            ma.away_team_id,
-            ats.id AS away_team_stat_id,
-            ats.overall_position AS away_position,
-            ma.away_team_score
+            fourth_ref.display_name_kr AS referee_4th_kr      
         FROM fixtures fx
         JOIN grounds gr ON fx.ground_id = gr.id
         JOIN matches ma ON fx.id = ma.fixture_id
@@ -89,7 +90,59 @@ def fetch_match_detail(
         "match_id": matchId
     }
     row = db.execute(text(sql), params).fetchone()
+    
+    form_sql = text("""
+        SELECT
+            tsma.is_home,
+            m.home_team_score,
+            m.away_team_score
+        FROM team_stat_match_association tsma
+        JOIN matches m ON tsma.match_id = m.id
+        WHERE tsma.team_stat_id = :team_stat_id
+          AND tsma.kickoff_time < :fixture_kickoff
+        ORDER BY tsma.kickoff_time DESC
+        LIMIT 5
+    """)
+
+    def get_recent_form(team_stat_id: str, fixture_kickoff: datetime):
+        if not team_stat_id:
+            return []
+
+        rows = db.execute(form_sql, {
+            "team_stat_id": team_stat_id,
+            "fixture_kickoff": fixture_kickoff,
+        }).fetchall()
+
+        form = []
+        for r in rows:
+            if r.is_home:
+                team_score, opp_score = r.home_team_score, r.away_team_score
+            else:
+                team_score, opp_score = r.away_team_score, r.home_team_score
+
+            if team_score > opp_score:
+                form.append("W")
+            elif team_score == opp_score:
+                form.append("D")
+            else:
+                form.append("L")
+        return form
+
+    home = {
+            "teamId": row.home_team_id,
+            "teamName": row.home_team_name_en if locale == "en-US" else row.home_team_name_kr,
+            "leaguePosition": row.home_position,
+            "recentForm": get_recent_form(row.home_team_stat_id, kickoff),
+    }
+
+    away = {
+            "teamId": row.away_team_id,
+            "teamName": row.away_team_name_en if locale == "en-US" else row.away_team_name_kr,
+            "leaguePosition": row.away_position,
+            "recentForm": get_recent_form(row.away_team_stat_id, kickoff),
+    }
 
     return {
-        "data": dict(row._mapping)  # ✅ 핵심 수정
+        "home": home,
+        "away": away 
     }
