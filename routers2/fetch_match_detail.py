@@ -40,7 +40,7 @@ def fetch_match_detail(
             return {"error": "No season data found"}
 
     sql = """
-                SELECT 
+        SELECT
             fx.kickoff_time,
             fx.id,
             fx.game_week,
@@ -48,40 +48,10 @@ def fetch_match_detail(
             gr.name_kr,
             gr.city_name_en,
             gr.city_name_kr,
-            ma.period,
-
-            main_ref.display_name_en   AS referee_main_en,
-            main_ref.display_name_kr   AS referee_main_kr,
-            a1_ref.display_name_en     AS referee_a1_en,
-            a1_ref.display_name_kr     AS referee_a1_kr,
-            a2_ref.display_name_en     AS referee_a2_en,
-            a2_ref.display_name_kr     AS referee_a2_kr,
-            fourth_ref.display_name_en AS referee_4th_en,
-            fourth_ref.display_name_kr AS referee_4th_kr,
-            ht.name_en AS home_team_name_en,
-            ht.name_kr AS home_team_name_kr,
-            at.name_en AS away_team_name_en,
-            at.name_kr AS away_team_name_kr,
-            ma.home_team_id,
-            hts.id AS home_team_stat_id,
-            hts.overall_position AS home_position,
-            ma.home_team_score,
-
-            ma.away_team_id,
-            ats.id AS away_team_stat_id,
-            ats.overall_position AS away_position,
-            ma.away_team_score
+            ma.period
         FROM fixtures fx
         JOIN grounds gr ON fx.ground_id = gr.id
         JOIN matches ma ON fx.id = ma.fixture_id
-        LEFT JOIN officials main_ref ON ma.official_main_referee_id = main_ref.id
-        LEFT JOIN officials a1_ref ON ma.official_assistant_1_referee_id = a1_ref.id
-        LEFT JOIN officials a2_ref ON ma.official_assistant_2_referee_id = a2_ref.id
-        LEFT JOIN officials fourth_ref ON ma.official_fourth_referee_id = fourth_ref.id
-        LEFT JOIN team_stats hts ON ma.home_team_id = hts.team_id AND hts.season_id = :season_id
-        LEFT JOIN team_stats ats ON ma.away_team_id = ats.team_id AND ats.season_id = :season_id
-        LEFT JOIN teams ht ON ma.home_team_id = ht.id
-        LEFT JOIN teams at ON ma.away_team_id = at.id
         WHERE fx.id = :match_id
     """
     params = {
