@@ -128,6 +128,7 @@ def fetch_match_detail(
                 form.append("L")
         return form
 
+    kickoff = row.kickoff_time
     home = {
             "teamId": row.home_team_id,
             "teamName": row.home_team_name_en if locale == "en-US" else row.home_team_name_kr,
