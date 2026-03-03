@@ -130,16 +130,16 @@ def fetch_match_detail(
 
     kickoff = row.kickoff_time
     if kickoff.tzinfo is None:
-            kickoff = kickoff.replace(tzinfo=timezone.utc)
+        kickoff = kickoff.replace(tzinfo=timezone.utc)
 
-        now_utc = datetime.now(timezone.utc)
+    now_utc = datetime.now(timezone.utc)
 
-        if row.period == "FULLTIME":
-            status = "finished"
-        elif row.period == "PREMATCH" and kickoff <= now_utc <= kickoff + timedelta(minutes=300):
-            status = "live"
-        else:
-            status = "upcoming"
+    if row.period == "FULLTIME":
+        status = "finished"
+    elif row.period == "PREMATCH" and kickoff <= now_utc <= kickoff + timedelta(minutes=300):
+        status = "live"
+    else:
+        status = "upcoming"
 
     home = {
             "teamId": row.home_team_id,
@@ -166,13 +166,13 @@ def fetch_match_detail(
             "away" : away
         }
 
-        if status == "finished":
-            fixture["referee"] = {
+    if status == "finished":
+        fixture["referee"] = {
                 "main": row.referee_main_en if locale == "en-US" else row.referee_main_kr,
                 "assist1": row.referee_a1_en if locale == "en-US" else row.referee_a1_kr,
                 "assist2": row.referee_a2_en if locale == "en-US" else row.referee_a2_kr,
                 "fourth": row.referee_4th_en if locale == "en-US" else row.referee_4th_kr,
-            }
+        }
 
     return {
         "data" : fixture
