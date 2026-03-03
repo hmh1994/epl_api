@@ -71,7 +71,9 @@ def fetch_match_detail(
             a2_ref.display_name_en     AS referee_a2_en,
             a2_ref.display_name_kr     AS referee_a2_kr,
             fourth_ref.display_name_en AS referee_4th_en,
-            fourth_ref.display_name_kr AS referee_4th_kr      
+            fourth_ref.display_name_kr AS referee_4th_kr,
+
+            ma.attendance      
         FROM fixtures fx
         JOIN grounds gr ON fx.ground_id = gr.id
         JOIN matches ma ON fx.id = ma.fixture_id
@@ -163,7 +165,8 @@ def fetch_match_detail(
             "city": row.city_name_en if locale == "en-US" else row.city_name_kr,
             "status": status,
             "home" : home,
-            "away" : away
+            "away" : away,
+            "attendance" : row.attendance
         }
 
     if status == "finished":
@@ -175,5 +178,5 @@ def fetch_match_detail(
         }
 
     return {
-        "data" : fixture
+        "fixture" : fixture
     }
