@@ -52,7 +52,7 @@ def fetch_match_detail(
         FROM fixtures fx
         JOIN grounds gr ON fx.ground_id = gr.id
         JOIN matches ma ON fx.id = ma.fixture_id
-        WHERE fx.id = :matchId
+        WHERE fx.id = :match_Id
     """
     params = {
         "match_id": matchId
