@@ -40,9 +40,13 @@ def fetch_match_detail(
             return {"error": "No season data found"}
     sql = """
         SELECT 
-            *
-        FROM fixtures
-        WHERE id = :match_Id
+            ma.home_team_formation,
+            ma.away_team_formation,
+            ma.home_team_captain_id,
+            ma.away_team_captain_id
+        FROM fixtures fx
+        JOIN matches ma ON fx.id = ma.fixture_id
+        WHERE fx.id = :match_id
     """
     params = {
         "season_id": season_id,
