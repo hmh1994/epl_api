@@ -23,4 +23,39 @@ def fetch_match_detail(
     locale: Optional[str] = Query("en-US"),
     db: Session = Depends(get_db),
 ):
-    return 0
+    ## 리그 정보 조회
+    competition_id, error = get_competition_id(db, leagueName)
+    if error:
+        return {"error": error}
+
+    ## 시즌 정보 조회
+    if season:  
+        season_db = web_to_db_season(season)
+        season_id = get_season_id_by_abbr(db, competition_id, season_db)
+        if not season_id:
+            return {"error": f"Season not found: {season}"}
+    else:
+        season_id = get_current_or_latest_season_id(db, competition_id)
+        if not season_id:
+            return {"error": "No season data found"}
+    sql = """
+        SELECT 
+            *
+        FROM matches
+        WHERE id = :match_Id
+    """
+    params = {
+        "season_id": season_id,
+        "match_id": matchId
+    }
+    row = db.execute(text(sql), params).fetchone()    
+    return {
+        "meta": {
+            "leagueName": leagueName,
+            "leagueId": competition_id,
+            "matchId" : matchId,
+            "season": season_id,
+            "lastUpdated": datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S"),
+            "locale": locale
+        }
+    }
