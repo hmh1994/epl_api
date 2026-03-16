@@ -14,9 +14,8 @@ from utils.seasons_util import (
 )
 
 router = APIRouter(prefix="/api/v1", tags=["fetch_match_lineup"])
-
 @router.get("/leagues/{leagueName}/matches/{matchId}/lineup")
-def fetch_match_detail(
+def fetch_match_lineup(
     leagueName: str,
     matchId: str,
     season: Optional[str] = Query(None),
@@ -53,6 +52,8 @@ def fetch_match_detail(
         "match_id": matchId
     }
     row = db.execute(text(sql), params).fetchone()    
+
+    KST = timezone(timedelta(hours=9))
     return {
         "meta": {
             "leagueName": leagueName,
