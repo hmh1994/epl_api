@@ -41,7 +41,7 @@ def fetch_match_detail(
     sql = """
         SELECT 
             *
-        FROM matches
+        FROM fixtures
         WHERE id = :match_Id
     """
     params = {
