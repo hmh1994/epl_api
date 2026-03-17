@@ -17,21 +17,27 @@ router = APIRouter(prefix="/api/v1", tags=["fetch_match_lineup"])
 KST = timezone(timedelta(hours=9))
 
 
-@router.get("/leagues/{leagueName}/matches/{matchId}/lineup")
+@router.get("/leagues/{leagueName}/fixtures/{fixtureId}/lineup")
 def fetch_match_lineup(
     leagueName: str,
-    matchId: str,
+    fixtureId: str,
     season: Optional[str] = Query(None),
     locale: Optional[str] = Query("en-US"),
     db: Session = Depends(get_db),
 ):
 
+    # ---------------------------
     # 리그 조회
+    # ---------------------------
+
     competition_id, error = get_competition_id(db, leagueName)
     if error:
         return {"error": error}
 
+    # ---------------------------
     # 시즌 조회
+    # ---------------------------
+
     if season:
         season_db = web_to_db_season(season)
         season_id = get_season_id_by_abbr(db, competition_id, season_db)
@@ -43,11 +49,12 @@ def fetch_match_lineup(
             return {"error": "No season data found"}
 
     # ---------------------------
-    # 1️⃣ match 기본 정보
+    # 1️⃣ fixture → match 조회
     # ---------------------------
 
     match_sql = text("""
         SELECT 
+            ma.id AS match_id,
             ma.home_team_formation,
             ma.away_team_formation,
             ma.home_team_captain_id,
@@ -56,13 +63,15 @@ def fetch_match_lineup(
             ma.away_team_id
         FROM fixtures fx
         JOIN matches ma ON fx.id = ma.fixture_id
-        WHERE fx.id = :match_id
+        WHERE fx.id = :fixture_id
     """)
 
-    match_row = db.execute(match_sql, {"match_id": matchId}).fetchone()
+    match_row = db.execute(match_sql, {"fixture_id": fixtureId}).fetchone()
 
     if not match_row:
         return {"error": "Match not found"}
+
+    match_id = match_row.match_id
 
     # ---------------------------
     # 2️⃣ lineup
@@ -86,7 +95,7 @@ def fetch_match_lineup(
         ORDER BY mla.is_home DESC, mla.row, mla.column
     """)
 
-    lineup_rows = db.execute(lineup_sql, {"match_id": matchId}).fetchall()
+    lineup_rows = db.execute(lineup_sql, {"match_id": match_id}).fetchall()
 
     lineup = []
 
@@ -122,7 +131,7 @@ def fetch_match_lineup(
         WHERE msa.match_id = :match_id
     """)
 
-    sub_rows = db.execute(sub_sql, {"match_id": matchId}).fetchall()
+    sub_rows = db.execute(sub_sql, {"match_id": match_id}).fetchall()
 
     substitutes = []
 
@@ -153,7 +162,7 @@ def fetch_match_lineup(
         ORDER BY msa.clock
     """)
 
-    sub_event_rows = db.execute(sub_event_sql, {"match_id": matchId}).fetchall()
+    sub_event_rows = db.execute(sub_event_sql, {"match_id": match_id}).fetchall()
 
     substitutions = []
 
@@ -179,10 +188,10 @@ def fetch_match_lineup(
         FROM matches ma
         LEFT JOIN teams ht ON ma.home_team_id = ht.id
         LEFT JOIN teams at ON ma.away_team_id = at.id
-        WHERE ma.fixture_id = :match_id
+        WHERE ma.id = :match_id
     """)
 
-    color_row = db.execute(color_sql, {"match_id": matchId}).fetchone()
+    color_row = db.execute(color_sql, {"match_id": match_id}).fetchone()
 
     team_colors = {
         "homePrimary": color_row.home_primary if color_row else None,
@@ -192,7 +201,7 @@ def fetch_match_lineup(
     }
 
     # ---------------------------
-    # 최종 데이터
+    # 최종 data
     # ---------------------------
 
     data = {
@@ -209,7 +218,8 @@ def fetch_match_lineup(
     return {
         "data": data,
         "meta": {
-            "matchId": matchId,
+            "matchId": match_id,
+            "fixtureId": fixtureId,
             "season": season_id,
             "locale": locale,
             "lastUpdated": datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
