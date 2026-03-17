@@ -183,5 +183,6 @@ def fetch_premium_table(
             "season": season_id,
             "lastUpdated": last_updated,
             "locale": locale,
+            "venue" : venue
         }
     }
