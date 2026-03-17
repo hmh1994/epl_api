@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from routers2.lineup import router as matchlineupRouter
 from routers2.referee_info import router as refereeinfoRouter
-from routers2.points-race import router as pointsraceRouter
+from routers2.points_race import router as pointsraceRouter
 '''
 
 from routers2.player-awards import router as playerAwardRouter
