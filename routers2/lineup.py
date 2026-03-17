@@ -191,7 +191,7 @@ def fetch_match_lineup(
         WHERE ma.id = :fixture_id
     """)
 
-    color_row = db.execute(color_sql, {"fixture_id": fixture_id}).fetchone()
+    color_row = db.execute(color_sql, {"fixture_id": fixtureId}).fetchone()
 
     team_colors = {
         "homePrimary": color_row.home_primary if color_row else None,
