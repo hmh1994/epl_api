@@ -45,7 +45,6 @@ def points_race(
             t.short_name_en,
             t.short_name_kr,
             t.icon_url,
-
             ts.overall_position,
             ts.overall_cumulative_points
         FROM team_stats ts
@@ -58,14 +57,14 @@ def points_race(
     data = []
     for row in rows:
         data.append({
-            "team": {
+            
                 "id": row.team_id,
                 "name": row.name_en if locale == "en-US" else row.name_kr,
                 "shortName": row.short_name_en if locale == "en-US" else row.short_name_kr,
                 "logo": row.icon_url,
                 "position" : row.overall_position,
                 "cumulativePoints" : row.overall_cumulative_points
-            }
+            
         })
 
 
