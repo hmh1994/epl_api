@@ -18,6 +18,7 @@ def fetch_premium_table(
     leagueName: str,
     season: Optional[str] = Query(None, description="If no season is provided, the default value is the latest season"),
     locale: Optional[str] = Query("en-US", description="support only ko-KR, en-US"),
+    venue: Optional[str] = Query("overall", description="overall | home | away"),
     db: Session = Depends(get_db),
 ):
     ## 1. 리그
@@ -49,15 +50,35 @@ def fetch_premium_table(
 
             ts.overall_position,
             ts.overall_matches,
-            ts.overall_matches_won,
+            ts.overall_matches_won,            
             ts.overall_matches_drawn,
             ts.overall_matches_lost,
             ts.overall_goals_for,
             ts.overall_goals_against,
             ts.overall_goals_difference,
             ts.overall_points,
-            ts.momentum,
 
+            ts.home_position,
+            ts.home_matches,
+            ts.home_matches_won,            
+            ts.home_matches_drawn,
+            ts.home_matches_lost,
+            ts.home_goals_for,
+            ts.home_goals_against,
+            ts.home_goals_difference,
+            ts.home_points,
+
+            ts.away_position,
+            ts.away_matches,
+            ts.away_matches_won,            
+            ts.away_matches_drawn,
+            ts.away_matches_lost,
+            ts.away_goals_for,
+            ts.away_goals_against,
+            ts.away_goals_difference,
+            ts.away_points,
+
+            ts.momentum,
             ts.overall_stat_attack_expected_goals,
             ts.overall_stat_attack_expected_assists,
             ts.overall_stat_average_possession,
@@ -120,6 +141,7 @@ def fetch_premium_table(
             else:
                 form.append("L")
 
+        prefix = venue
         data.append({
             "team": {
                 "id": row.team_id,
@@ -127,17 +149,17 @@ def fetch_premium_table(
                 "shortName": row.short_name_en if locale == "en-US" else row.short_name_kr,
                 "logo": row.icon_url,
             },
-            "position": row.overall_position,
-            "record": {
-                "played": row.overall_matches,
-                "won": row.overall_matches_won,
-                "drawn": row.overall_matches_drawn,
-                "lost": row.overall_matches_lost,
-                "goalsFor": row.overall_goals_for,
-                "goalsAgainst": row.overall_goals_against,
-                "goalDifference": row.overall_goals_difference,
-                "points": row.overall_points,
-            },
+            "position": getattr(row, f"{prefix}_position"),
+            "record" = {
+                "played": getattr(row, f"{prefix}_matches"),
+                "won": getattr(row, f"{prefix}_matches_won"),
+                "drawn": getattr(row, f"{prefix}_matches_drawn"),
+                "lost": getattr(row, f"{prefix}_matches_lost"),
+                "goalsFor": getattr(row, f"{prefix}_goals_for"),
+                "goalsAgainst": getattr(row, f"{prefix}_goals_against"),
+                "goalDifference": getattr(row, f"{prefix}_goals_difference"),
+                "points": getattr(row, f"{prefix}_points"),
+            }
             "form": form,  
             "trend": row.momentum,
             "advancedMetrics": {
