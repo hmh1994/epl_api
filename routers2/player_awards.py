@@ -17,8 +17,8 @@ router = APIRouter(prefix="/api/v1", tags=["player-award"])
 def player_award(
     leagueName: str,
     playerId: str,
-    season: Optional[str] = Query(None, description="optional season filter"),
-    locale: Optional[str] = Query("en-US", description="support only ko-KR, en-US"),
+    season: Optional[str] = Query(None),
+    locale: Optional[str] = Query("en-US"),
     db: Session = Depends(get_db),
 ):
 
@@ -29,14 +29,14 @@ def player_award(
 
     season_id = None
 
-    # 2️⃣ season 파라미터 있을 때만 조회
+    # 2️⃣ 시즌 파라미터 있을 때만 조회
     if season:
         season_db = web_to_db_season(season)
         season_id = get_season_id_by_abbr(db, competition_id, season_db)
         if not season_id:
             return {"error": f"Season not found: {season}"}
 
-    # 3️⃣ SQL (season 조건 동적 추가)
+    # 3️⃣ SQL
     sql = """
         SELECT
             a.type,
@@ -67,8 +67,8 @@ def player_award(
 
     rows = db.execute(text(sql), params).fetchall()
 
-    # 4️⃣ 데이터 변환
     data = []
+
     for row in rows:
         data.append({
             "type": row.type,
@@ -79,19 +79,17 @@ def player_award(
             "season": row.season
         })
 
-    total_count = len(data)
-
-    if total_count == 0:
-        message = "No awards found for this player"
-    else:
-        message = None
+    # 수상 이력이 없을 경우
+    if not data:
+        data = [{
+            "notice": "No awards for this player"
+        }]
 
     return {
         "data": data,
         "meta": {
-            "totalCount": total_count,
+            "totalCount": 0 if data and "notice" in data[0] else len(data),
             "leagueId": competition_id,
-            "locale": locale,
-            "message": message
+            "locale": locale
         }
     }
