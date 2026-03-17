@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from routers2.lineup import router as matchlineupRouter
 from routers2.referee_info import router as refereeinfoRouter
 from routers2.points_race import router as pointsraceRouter
-from routers2.player_awards import router as playerAwardRouter
+from routers2.player_awards import router as playerawardRouter
 from routers2.fetch_premium_table import router as premiumRouter
 from routers2.fetch_match_detail import router as matchDetailRouter
 from routers2.fetch_match_schedule import router as scheduleRouter
@@ -32,7 +32,7 @@ app = FastAPI(title="Football Data API", version="1.0",)
 app.include_router(matchlineupRouter)
 app.include_router(refereeinfoRouter)
 app.include_router(pointsraceRouter)
-app.include_router(playerAwardRouter)
+app.include_router(playerawardRouter)
 app.include_router(premiumRouter)
 app.include_router(matchDetailRouter)
 app.include_router(scheduleRouter)

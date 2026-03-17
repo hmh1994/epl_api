@@ -8,8 +8,6 @@ from datetime import datetime, timedelta, timezone
 from utils.leagues_util import get_competition_id
 
 router = APIRouter(prefix="/api/v1", tags=["player-award"])
-
-
 @router.get("/leagues/{leagueName}/players/{playerId}/awards")
 def player_award(
     leagueName: str,
