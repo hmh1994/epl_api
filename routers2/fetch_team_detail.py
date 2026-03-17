@@ -211,6 +211,8 @@ def fetch_team_detail(
             "meta": meta_block,
             "homeRecord" : home_record,
             "awayRecord" : away_record,
+            "homeCumulativePoints" : stats_row.home_cumulative_points,
+            "awayCumulativePoints" : stats_row.away_cumulative_points,
             "static": static,
             "squad": squad
         },
