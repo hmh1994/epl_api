@@ -185,13 +185,13 @@ def fetch_match_lineup(
             ht.color_secondary AS home_secondary,
             at.color_primary AS away_primary,
             at.color_secondary AS away_secondary
-        FROM matches ma
+        FROM fixtures ma
         LEFT JOIN teams ht ON ma.home_team_id = ht.id
         LEFT JOIN teams at ON ma.away_team_id = at.id
-        WHERE ma.id = :match_id
+        WHERE ma.id = :fixture_id
     """)
 
-    color_row = db.execute(color_sql, {"match_id": match_id}).fetchone()
+    color_row = db.execute(color_sql, {"fixture_id": fixture_id}).fetchone()
 
     team_colors = {
         "homePrimary": color_row.home_primary if color_row else None,
