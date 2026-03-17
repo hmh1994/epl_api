@@ -178,6 +178,29 @@ def fetch_team_detail(
         "trophies": None,
     }
 
+    home_record = {
+        "played": stats_row.home_matches,
+        "won" : stats_row.home_matches_won,
+        "drawn" : stats_row.home_matches_drawn, 
+        "lost" : stats_row.home_matches_lost, 
+        "goalsFor" : stats_row.home_goals_for, 
+        "goalsAgainst" : stats_row.home_goals_against, 
+        "goalsDifferenece" : stats_row.home_goals_difference, 
+        "points" : stats_row.home_points, 
+        "position" : stats_row.home_position
+    }
+    away_record = {
+        "played": stats_row.away_matches,
+        "won" : stats_row.away_matches_won,
+        "drawn" : stats_row.away_matches_drawn, 
+        "lost" : stats_row.away_matches_lost, 
+        "goalsFor" : stats_row.away_goals_for, 
+        "goalsAgainst" : stats_row.away_goals_against, 
+        "goalsDifferenece" : stats_row.away_goals_difference, 
+        "points" : stats_row.away_points, 
+        "position" : stats_row.away_position
+    }
+
     # 11. response
     KST = timezone(timedelta(hours=9))
     last_updated = datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S")
@@ -186,6 +209,8 @@ def fetch_team_detail(
         "data": {
             "summary": summary,
             "meta": meta_block,
+            "homeRecord" : home_record,
+            "awayRecord" : away_record,
             "static": static,
             "squad": squad
         },
