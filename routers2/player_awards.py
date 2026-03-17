@@ -3,31 +3,41 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import Optional
 from database import get_db
-from datetime import datetime, timedelta, timezone
 
 from utils.leagues_util import get_competition_id
+from utils.seasons_util import (
+    web_to_db_season,
+    get_season_id_by_abbr
+)
 
 router = APIRouter(prefix="/api/v1", tags=["player-award"])
+
+
 @router.get("/leagues/{leagueName}/players/{playerId}/awards")
 def player_award(
     leagueName: str,
     playerId: str,
-    season: Optional[str] = Query(None, description="If no season is provided, the default value is the latest season"),
+    season: Optional[str] = Query(None, description="optional season filter"),
     locale: Optional[str] = Query("en-US", description="support only ko-KR, en-US"),
     db: Session = Depends(get_db),
 ):
 
-    # -----------------------------
     # 1️⃣ league 확인
-    # -----------------------------
     competition_id, error = get_competition_id(db, leagueName)
     if error:
         return {"error": error}
 
-    # -----------------------------
-    # 2️⃣ award 조회
-    # -----------------------------
-    sql = text("""
+    season_id = None
+
+    # 2️⃣ season 파라미터 있을 때만 조회
+    if season:
+        season_db = web_to_db_season(season)
+        season_id = get_season_id_by_abbr(db, competition_id, season_db)
+        if not season_id:
+            return {"error": f"Season not found: {season}"}
+
+    # 3️⃣ SQL (season 조건 동적 추가)
+    sql = """
         SELECT
             a.type,
             a.name_en,
@@ -45,13 +55,20 @@ def player_award(
         JOIN seasons s
             ON ps.season_id = s.id
         WHERE ps.player_id = :player_id
-        ORDER BY psaa.date DESC
-    """)
+    """
 
-    rows = db.execute(sql, {"player_id": playerId}).fetchall()
+    params = {"player_id": playerId}
 
+    if season_id:
+        sql += " AND ps.season_id = :season_id"
+        params["season_id"] = season_id
+
+    sql += " ORDER BY psaa.date DESC"
+
+    rows = db.execute(text(sql), params).fetchall()
+
+    # 4️⃣ 데이터 변환
     data = []
-
     for row in rows:
         data.append({
             "type": row.type,
@@ -62,13 +79,9 @@ def player_award(
             "season": row.season
         })
 
-    # -----------------------------
-    # 3️⃣ 메타 정보
-    # -----------------------------
     total_count = len(data)
 
     if total_count == 0:
-        data = []
         message = "No awards found for this player"
     else:
         message = None
