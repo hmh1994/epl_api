@@ -81,14 +81,13 @@ def player_award(
 
     # 수상 이력이 없을 경우
     if not data:
-        data = [{
-            "notice": "No awards for this player"
-        }]
+        data = None
 
     return {
         "data": data,
         "meta": {
-            "totalCount": 0 if data and "notice" in data[0] else len(data),
+            "totalCount": 0 if data is None else len(data),
+            "leagueName": leagueName,
             "leagueId": competition_id,
             "locale": locale
         }
